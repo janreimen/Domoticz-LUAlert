@@ -1,0 +1,23 @@
+Domoticz-LU-Alert
+Copyright 2026 Jan Reimen
+
+This project is licensed under the MIT License (see LICENSE).
+
+It is a port to a Domoticz plugin of the Home Assistant integration
+"Lux-Alert-HACS-integration" by koosoli, https://github.com/koosoli/Lux-Alert-HACS-integration,
+which reads the LU-Alert warnings of the Luxembourg government.
+
+What the plugin takes from that integration is the idea, the choice of data
+source (the data.public.lu dataset "Alertes du système LU-Alert"), the mapping
+of the LU-Alert levels to severities, and the rules for test messages, expired
+and old alerts, cancel/update references and the watchlist. The code is written
+anew in Python for Domoticz (standard library only); no source file of the
+integration is copied.
+
+NOTE: the repository of that integration carries no licence file. Before this
+project is published, the author of the integration should be asked to confirm
+that the port may be distributed (or to add a licence); this notice is the
+attribution until then.
+
+The alert data are published by the Government of the Grand Duchy of Luxembourg
+on data.public.lu; see the licence given on the dataset page.

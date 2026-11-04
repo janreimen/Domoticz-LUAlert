@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Domoticz community forum
+    url: https://forum.domoticz.com/
+    about: Ask general Domoticz usage questions and get help from the community.
+  - name: LU-Alert (official site)
+    url: https://lu-alert.lu/
+    about: Questions about the alert system itself, its levels or a particular alert belong to the Luxembourg government.
+  - name: Domoticz-LU-Alert repository
+    url: https://github.com/janreimen/Domoticz-LU-Alert
+    about: Read the project documentation and review existing releases before opening an issue.

@@ -1,0 +1,69 @@
+name: Feature request
+description: Suggest an improvement or new capability
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem you want to solve and the proposed improvement.
+
+        For features that need more data from the feed, say which CAP element or parameter carries it. Do not include personal data.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: Explain the limitation or use case.
+      placeholder: I would like to be able to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe how you would like the feature to work.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any workarounds or alternative solutions.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature category
+      options:
+        - Alert rules (levels, test messages, cancel/update)
+        - Location, watchlist or allergens
+        - Domoticz devices or presentation
+        - Configuration or installation
+        - Logging or diagnostics
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feed
+    attributes:
+      label: Availability in the feed
+      description: If known, which element or parameter of the CAP-LU messages provides this?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked existing issues, the roadmap and the documentation for this feature.
+          required: true
+        - label: I have not included personal data.
+          required: true

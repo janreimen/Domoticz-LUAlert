@@ -1,0 +1,122 @@
+name: Bug report
+description: Report a reproducible problem with Domoticz-LU-Alert
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem.
+
+        Please search existing issues first. Never include your home coordinates, proxy passwords or other personal data. If an alert is not shown or shown wrongly, the output of `python3 -m lu_alert --json` (without `--location`) is the most useful thing you can attach.
+
+  - type: input
+    id: plugin_version
+    attributes:
+      label: Plugin version
+      description: The version shown in the first plugin line of the Domoticz log ("LU-Alert Luxembourg X.Y.Z starting ...").
+      placeholder: "e.g. 0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: domoticz_version
+    attributes:
+      label: Domoticz version
+      description: Include the build or release identifier if available.
+      placeholder: "e.g. 2026.1"
+    validations:
+      required: true
+
+  - type: input
+    id: operating_system
+    attributes:
+      label: Operating system and Python version
+      placeholder: "e.g. Raspberry Pi OS (Trixie), Python 3.13"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: transport
+    attributes:
+      label: How does Domoticz reach the internet?
+      options:
+        - Directly
+        - Through a proxy (HTTPS_PROXY is set)
+        - A firewall or DNS filter is in between (Pi-hole, AdGuard, ...)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_area
+    attributes:
+      label: Affected functionality
+      options:
+        - Installation or configuration
+        - Feed cannot be read / TLS / certificates
+        - An alert is missing
+        - An alert is shown that should not be
+        - Severity or colour is wrong
+        - Cancelled or updated alert is not handled
+        - Local alert / location filter
+        - Watchlist or allergen match
+        - Devices created, renamed or removed
+        - Plugin startup or shutdown
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Describe the problem
+      description: Explain what happens and why it is unexpected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Configure the hardware...
+        2. Wait for an update...
+        3. Observe the result...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Set the hardware's Debug setting to Verbose first if you can. The plugin never writes your location to the log, but check the text before you post it.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional information
+      description: Does it happen every time? Did it work in an earlier version?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for a similar problem.
+          required: true
+        - label: I removed coordinates, passwords and private data from this report.
+          required: true
