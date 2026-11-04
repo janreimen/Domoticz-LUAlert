@@ -1,5 +1,5 @@
 """
-<plugin key="LUAlert" name="LU-Alert Luxembourg" author="Jan Reimen" version="0.1.0" wikilink="https://github.com/janreimen/Domoticz-LU-Alert" externallink="https://lu-alert.lu/">
+<plugin key="LUAlert" name="LU-Alert Luxembourg" author="Jan Reimen" version="0.1.1" wikilink="https://github.com/janreimen/Domoticz-LU-Alert" externallink="https://lu-alert.lu/">
     <description>
         <h2>LU-Alert Luxembourg</h2><br/>
         Shows the official <b>LU-Alert</b> warnings of the Luxembourg government as Domoticz devices: the number of

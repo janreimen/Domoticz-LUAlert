@@ -114,7 +114,9 @@ def main(argv: Optional[List[str]] = None, out=None, err=None) -> int:
 
     snapshot = build_snapshot(cap_alerts, datetime.now(timezone.utc), Filters.from_settings(settings))
     if args.json:
-        json.dump({"alerts": [_row(a) for a in snapshot.alerts], "counts": snapshot.counts, "dropped": snapshot.dropped},
+        json.dump({"alerts": [_row(a) for a in snapshot.alerts], "counts": snapshot.counts, "dropped": snapshot.dropped,
+                   "ignored_tests": [{"identifier": i, "level": lv, "headline": h} for i, lv, h in snapshot.ignored_tests],
+                   "unknown_levels": list(snapshot.unknown_levels)},
                   out, indent=2, ensure_ascii=False)
         out.write("\n")
         return 0
@@ -135,4 +137,7 @@ def main(argv: Optional[List[str]] = None, out=None, err=None) -> int:
     print("\n%d active alert(s)%s; %s." % (snapshot.total, " (%s)" % counts if counts else "", summary), file=out)
     if snapshot.dropped:
         print("Left out: %s." % ", ".join("%s %d" % (why, n) for why, n in sorted(snapshot.dropped.items())), file=out)
+    if snapshot.unknown_levels:
+        print("Unknown level(s): %s. The CAP severity of those messages is used; please report them." %
+              ", ".join(snapshot.unknown_levels), file=out)
     return 0

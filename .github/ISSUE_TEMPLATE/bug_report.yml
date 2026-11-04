@@ -16,7 +16,7 @@ body:
     attributes:
       label: Plugin version
       description: The version shown in the first plugin line of the Domoticz log ("LU-Alert Luxembourg X.Y.Z starting ...").
-      placeholder: "e.g. 0.1.0"
+      placeholder: "e.g. 0.1.1"
     validations:
       required: true
 

@@ -57,18 +57,20 @@ CAP `severity` field (Extreme, Severe, Moderate, Minor, Unknown). Levels are com
 | `A`, `LU-Alert Amber` | Moderate | orange |
 | `N3`, `L3`, `LU-Alert Level 3`, `ALERT_LVL_3` | Minor | yellow |
 | `I`, `LU-Alert Level 4`, `ALERT_LVL_4` | Information | green |
-| `T`, `LU-Alert Test`, `LU-Alert Exercise` | Test | grey |
+| `T`, `TEST`, `LU-Alert Test`, `LU-Alert Exercise` | Test | grey |
 
-The levels come from the Home Assistant integration (`LEVEL_TO_SEVERITY`) and from the levels named on
-[lu-alert.lu](https://lu-alert.lu/); an unknown level is kept as it is, shown in the log, and does not decide the
-severity.
+The levels `ALERT_LVL_1` to `ALERT_LVL_4` and `TEST` were **seen in the live feed**; the others come from the Home
+Assistant integration (`LEVEL_TO_SEVERITY`) and from the levels named on [lu-alert.lu](https://lu-alert.lu/) and have
+**not been seen**. An unknown level is kept as it is, named **once** in the Domoticz log (`Unknown LU-Alert level
+'...'`), and does not decide the severity: the CAP `severity` of the message does.
 
 ### The level D
 
 The Home Assistant integration lists `D` both as an Extreme level and as a **test level**, so in practice it drops
 messages with level D. The plugin does the same by default, because a monthly test that turns every Domoticz light
-red would be worse than useless. **This is a decision made without a look at the live feed**, and wrongly hiding a
-real alert is the worse error, so:
+red would be worse than useless. **`D` has not been seen in the live feed** (the test messages seen there carry
+the level `TEST`), so this is a decision taken from the integration, and wrongly hiding a real alert is the worse
+error, so:
 
 * every test message that is left out is written to the Domoticz log **once**, with its level and headline
   (`Test message ignored (D): ...`), so a real alert taken for a test is not silent;
@@ -87,8 +89,8 @@ The rules in the order the plugin applies them (`lu_alert/alerts.py`):
 3. **Expiry.** An alert ends when its **latest** `expires` over all its blocks has passed. The plugin also checks
    this between polls (every heartbeat), so an alert ends on time even while the feed cannot be reached.
 4. **No end time.** An alert without any `expires` is shown for `LU_STALE_DAYS` (default 10) days after it was sent.
-5. **Test messages.** A CAP `status` other than `Actual` (Test, Exercise, System, Draft), the levels `T`, `LU-Alert
-   Test`, `LU-Alert Exercise` and everything in `LU_TEST_LEVELS` are left out, unless `LU_SHOW_TEST_ALERTS=1` (they
+5. **Test messages.** A CAP `status` other than `Actual` (Test, Exercise, System, Draft), the levels `T`, `TEST`,
+   `LU-Alert Test`, `LU-Alert Exercise` and everything in `LU_TEST_LEVELS` are left out, unless `LU_SHOW_TEST_ALERTS=1` (they
    are then shown as severity *Test*, grey, below everything else).
 6. **Categories.** Nothing is dropped because of its category unless you list it in `LU_IGNORE_CATEGORIES`; an
    alert is dropped only when *all* its categories are listed.
@@ -100,6 +102,9 @@ The rules in the order the plugin applies them (`lu_alert/alerts.py`):
 9. **Watchlist and allergens.** A keyword matches when it occurs (without regard to case) in the headline, event,
    description or instruction of any block, in any language.
 10. **Order.** Most severe first, newest first within a severity.
+11. **The same message twice.** The feed publishes a recall again as a *new* alert (own number, no reference to
+    the first). Alerts with the same severity, headline, description, instruction, event, area **and end time** are
+    shown once, the newest; anything that differs in one of these is kept as a separate alert.
 
 Every drop has a reason, and the totals are in the verbose log (`Left out: expired 3, test 1`).
 
@@ -113,6 +118,24 @@ A polygon is tested with the ray-casting rule on latitude/longitude as plane coo
 for areas the size of a municipality; a circle (`lat,lon radius-in-km`) with the haversine distance. The answer is
 *inside*, *outside* or *no geometry*.
 
+## Seen in the live feed
+
+`python3 -m lu_alert` was run once on a Raspberry Pi against the live feed on **2026-11-04** (100 alert files listed,
+100 read, 7 active alerts, no error). What the 100 messages showed:
+
+| What | Seen |
+|---|---|
+| Levels | `ALERT_LVL_1` (1 message), `ALERT_LVL_2` (25), `ALERT_LVL_3` (68), `ALERT_LVL_4` (4), `TEST` (2) |
+| Message types | `Alert` (75), `Update` (7), `Cancel` (18); the status of all of them was `Actual`, also of the `TEST` ones |
+| Identifier | `LU-Alert.<epoch>.<number>.<revision>`, for example `LU-Alert.1789134319.4803.0` |
+| Reference (Cancel, Update) | `[SENDER],identifier,sent`, for example `[ALVA],LU-Alert.1789134319.4803.0,2026-09-11T15:45:19+02:00`; the time zone of `sent` differs from the one of the message, the instant is the same |
+| Content | almost only food recalls and allergen warnings; the area is *Grand-Duché du Luxembourg* |
+| Duplicates | the same text is published again as a new alert, with its own number and no reference (three cabbage alerts with the same end time); see rule 11 |
+
+**Not seen:** the level `D`, a level other than the five above, a status other than `Actual`, an alert with a
+geometry, an alert in a language other than the ones the plugin asks for. The 100 files held 43 messages that are
+cancelled or replaced and 50 that had expired, so a feed this size is mostly history; only 7 messages were active.
+
 ## Differences from the Home Assistant integration
 
 | | Home Assistant integration | This plugin |
@@ -121,6 +144,8 @@ for areas the size of a municipality; a circle (`lat,lon radius-in-km`) with the
 | Level names | exact match | without regard to case |
 | Status `Test`, `Exercise`, `System`, `Draft` | shown | left out like tests |
 | Ignored tests | silent | named once in the log |
+| Level the table does not know | silent | named once in the log, the CAP severity is used |
+| Same message published twice | shown twice | shown once (rule 11) |
 | Category filter | none | optional, `LU_IGNORE_CATEGORIES` |
 | Files | read at every update | read once, cached by URL and version |
 | Files from other hosts | requested as the dataset lists them | only from the portal's own domain, or `LU_ALLOWED_HOSTS` |
@@ -136,3 +161,7 @@ python3 -m lu_alert --show-test           # including test messages
 ```
 
 The exit status is 0 when it worked, 1 for wrong options or an unreadable file, 2 when the feed cannot be read.
+
+`--json` also lists the test messages that were left out (`ignored_tests`) and the levels the plugin does not know
+(`unknown_levels`); the text output names the unknown levels at the end. Both are what to look at after a change of
+the feed.

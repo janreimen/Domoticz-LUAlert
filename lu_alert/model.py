@@ -79,6 +79,7 @@ class Snapshot(NamedTuple):
     next_expiry: Optional[datetime] = None  # when the first alert with an end ends: time to compute again
     dropped: Dict[str, int] = {}            # why messages were left out ("expired", "test", "cancelled", ...)
     ignored_tests: Tuple[Tuple[str, str, str], ...] = ()    # (identifier, level or status, headline) of tests left out
+    unknown_levels: Tuple[str, ...] = ()    # level codes the plugin does not know (the CAP severity was used instead)
 
     @property
     def total(self) -> int:

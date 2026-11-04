@@ -76,6 +76,20 @@ class FileTests(CliCase):
         self.assertEqual(alert["areas"], ["Luxembourg"])
         self.assertEqual(data["counts"]["Severe"], 1)
         self.assertEqual(data["dropped"], {})
+        self.assertEqual((data["ignored_tests"], data["unknown_levels"]), ([], []))
+
+    def test_a_test_message_of_the_live_feed_and_an_unknown_level_are_reported(self):
+        test = self.file("t.xml", fresh("t", level="TEST", status="Actual", headline="Monthly test"))
+        odd = self.file("o.xml", fresh("o", level="ALERT_LVL_9", severity="Moderate"))
+        code, out, _ = self.run_cli("--xml", test, odd, "--json")
+        data = json.loads(out)
+        self.assertEqual(code, 0)
+        self.assertEqual(data["ignored_tests"], [{"identifier": "t", "level": "TEST", "headline": "Monthly test"}])
+        self.assertEqual(data["unknown_levels"], ["ALERT_LVL_9"])
+        self.assertEqual(data["dropped"], {"test": 1})
+        text = self.run_cli("--xml", test, odd)[1]
+        self.assertIn("Left out: test 1.", text)
+        self.assertIn("Unknown level(s): ALERT_LVL_9.", text)
 
     def test_the_minimum_severity_and_the_language(self):
         path = self.file("a.xml", fresh("a", level="N3"))

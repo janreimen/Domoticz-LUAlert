@@ -1,6 +1,6 @@
 """The rules that decide which alerts a person sees: cancel, replace, expire, test, severity, language, location."""
 import unittest
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 import helpers  # noqa: F401
 from cap_samples import CITY, ESCH, HOME, NOW, cap_xml, info_xml, reference
@@ -59,8 +59,10 @@ class SeverityTests(unittest.TestCase):
         self.assertEqual(level_code(parse_cap(cap_xml("a", infos=infos))[0].infos), "N1")
 
     def test_ranking_and_counts(self):
-        s = snap(cap_xml("minor", level="N3", sent=minutes(10)), cap_xml("extreme", level="N1", sent=minutes(50)),
-                 cap_xml("severe-new", level="N2", sent=minutes(5)), cap_xml("severe-old", level="N2", sent=minutes(60)))
+        s = snap(cap_xml("minor", level="N3", sent=minutes(10), headline="m"),
+                 cap_xml("extreme", level="N1", sent=minutes(50), headline="e"),
+                 cap_xml("severe-new", level="N2", sent=minutes(5), headline="s1"),
+                 cap_xml("severe-old", level="N2", sent=minutes(60), headline="s2"))
         self.assertEqual([a.identifier for a in s.alerts], ["extreme", "severe-new", "severe-old", "minor"])
         self.assertEqual((s.counts["Extreme"], s.counts["Severe"], s.counts["Minor"], s.counts["Moderate"]), (1, 2, 1, 0))
         self.assertEqual(s.total, 4)
@@ -98,8 +100,9 @@ class SupersedeTests(unittest.TestCase):
         self.assertEqual([a.identifier for a in s.alerts], ["c"])
 
     def test_a_reference_to_an_older_version_does_not_end_a_newer_one(self):
-        s = snap(cap_xml("a", sent=minutes(30)),
-                 cap_xml("u", sent=minutes(20), msg_type="Update", references=reference("a", minutes(300))))
+        s = snap(cap_xml("a", sent=minutes(30), headline="first"),
+                 cap_xml("u", sent=minutes(20), msg_type="Update", references=reference("a", minutes(300)),
+                         headline="second"))
         self.assertEqual(sorted(a.identifier for a in s.alerts), ["a", "u"])
 
     def test_a_reference_without_a_time_ends_it(self):
@@ -192,6 +195,67 @@ class TestMessageTests(unittest.TestCase):
                          (("a", "Exercise", "Drill"),))
 
 
+class LiveFeedTests(unittest.TestCase):
+    """What the live feed was seen to do (looked at on 2026-11-04, 100 messages): the shapes that broke or nearly broke."""
+
+    def test_the_live_levels(self):
+        for code, severity in (("ALERT_LVL_1", "Extreme"), ("ALERT_LVL_2", "Severe"), ("ALERT_LVL_3", "Minor"),
+                               ("ALERT_LVL_4", "Information")):
+            self.assertEqual(snap(cap_xml("a", level=code, severity="Unknown")).alerts[0].severity, severity, code)
+
+    def test_a_test_message_of_the_live_feed_has_the_status_actual_and_the_level_TEST(self):
+        s = snap(cap_xml("t", level="TEST", status="Actual", severity="Severe", headline="Monthly test"))
+        self.assertEqual((s.total, s.dropped["test"]), (0, 1))
+        self.assertEqual(s.ignored_tests, (("t", "TEST", "Monthly test"),))
+        shown = snap(cap_xml("t", level="TEST", status="Actual", severity="Severe"), show_test=True)
+        self.assertEqual(shown.alerts[0].severity, "Test")
+        self.assertEqual(shown.unknown_levels, ())                                   # TEST is a known level
+
+    def test_a_cancel_in_the_form_of_the_live_feed_ends_the_alert_it_names(self):
+        sent = datetime(2026, 9, 11, 13, 45, 19, tzinfo=timezone.utc)               # 15:45:19+02:00 in the reference
+        original = cap_xml("LU-Alert.1789134319.4803.0", sent=sent, expires=NOW + timedelta(days=1))
+        cancel = cap_xml("LU-Alert.1789638485.4803.1", sent=datetime(2026, 9, 17, 9, 48, 5, tzinfo=timezone.utc),
+                         msg_type="Cancel", expires=NOW + timedelta(days=1),
+                         references="[ALVA],LU-Alert.1789134319.4803.0,2026-09-11T15:45:19+02:00")
+        self.assertEqual(snap(original).total, 1)
+        s = snap(original, cancel)
+        self.assertEqual((s.total, s.dropped["cancelled or replaced"]), (0, 2))
+
+    def test_an_update_in_the_form_of_the_live_feed_replaces_the_alert_it_names(self):
+        sent = datetime(2026, 11, 1, 9, 0, 0, tzinfo=timezone.utc)
+        original = cap_xml("LU-Alert.1.4900.0", sent=sent, headline="Recall: old text")
+        update = cap_xml("LU-Alert.2.4900.1", sent=sent + timedelta(hours=5), msg_type="Update",
+                         headline="Recall: new text", references="[ALVA],LU-Alert.1.4900.0,2026-11-01T10:00:00+01:00")
+        self.assertEqual([a.headline for a in snap(original, update).alerts], ["Recall: new text"])
+
+    def test_the_same_recall_published_again_under_a_new_number_is_shown_once(self):
+        # three alerts of the live feed: numbers 4854, 4855 and 4858, the same end, no reference between them
+        ends = NOW + timedelta(days=4)
+        first = cap_xml("LU-Alert.1793373270.4854.0", sent=NOW - timedelta(days=3), expires=ends, level="ALERT_LVL_3",
+                        headline="Recall : Curly green cabbage sold in bulk")
+        savoy = cap_xml("LU-Alert.1793374672.4855.0", sent=NOW - timedelta(days=3, minutes=-23), expires=ends,
+                        level="ALERT_LVL_3", headline="Recall : Savoy cabbage sold in bulk")
+        again = cap_xml("LU-Alert.1793625747.4858.0", sent=NOW - timedelta(hours=22), expires=ends, level="ALERT_LVL_3",
+                        headline="Recall : Curly green cabbage sold in bulk")
+        s = snap(first, savoy, again)
+        self.assertEqual([a.identifier for a in s.alerts], ["LU-Alert.1793625747.4858.0", "LU-Alert.1793374672.4855.0"])
+        self.assertEqual((s.total, s.dropped["duplicate"], s.counts["Minor"]), (2, 1, 2))
+
+    def test_messages_that_differ_in_what_a_person_reads_or_in_their_end_are_both_kept(self):
+        base = dict(level="N2", sent=NOW - timedelta(hours=1))
+        for other in (dict(description="<p>More shops are concerned.</p>"), dict(instruction="Do not eat it."),
+                      dict(expires=NOW + timedelta(days=1)), dict(area_desc="Esch-sur-Alzette"), dict(event="Recall"),
+                      dict(level="N1")):
+            s = snap(cap_xml("a", **base), cap_xml("b", **dict(base, sent=NOW - timedelta(minutes=5), **other)))
+            self.assertEqual((s.total, s.dropped.get("duplicate")), (2, None), other)
+
+    def test_a_level_the_plugin_does_not_know_is_reported_and_the_cap_severity_is_used(self):
+        s = snap(cap_xml("a", level="ALERT_LVL_9", severity="Moderate"), cap_xml("b", level="X1", headline="x"))
+        self.assertEqual(s.unknown_levels, ("ALERT_LVL_9", "X1"))
+        self.assertEqual({a.identifier: a.severity for a in s.alerts}["a"], "Moderate")
+        self.assertEqual(snap(cap_xml("a"), cap_xml("b", with_level=False, headline="n")).unknown_levels, ())
+
+
 class CategoryTests(unittest.TestCase):
     def test_a_category_is_ignored_only_when_all_of_them_are(self):
         document = cap_xml("a", categories=("Met",))
@@ -238,7 +302,8 @@ class LocationTests(unittest.TestCase):
 
     def test_only_local_alerts(self):
         only = dict(location_mode=2, location=HOME)
-        s = snap(cap_xml("in", polygon=CITY), cap_xml("out", polygon=ESCH), cap_xml("unknown"), **only)
+        s = snap(cap_xml("in", polygon=CITY, headline="i"), cap_xml("out", polygon=ESCH, headline="o"),
+                 cap_xml("unknown", headline="u"), **only)
         self.assertEqual(sorted(a.identifier for a in s.alerts), ["in", "unknown"])
         self.assertEqual(s.dropped["outside the location"], 1)
 

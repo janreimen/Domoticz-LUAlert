@@ -5,6 +5,28 @@ All notable changes to this project are documented here. The format follows
 (`MAJOR.MINOR.PATCH`, optionally a fourth `.N` for small fixes) so that release tags work with plugin managers
 such as PyPluginStore.
 
+## [0.1.1] - 2026-11-04
+
+The first look at the live feed: `python3 -m lu_alert` was run on a Raspberry Pi against data.public.lu (100 alert
+files listed and read, 7 active alerts, no error), and showed two things the plugin got wrong. The plugin itself has
+**not yet been run in a real Domoticz**. See [docs/LU-ALERT-DATA.md](docs/LU-ALERT-DATA.md#seen-in-the-live-feed).
+
+### Fixed
+- **The level `TEST` is a test level.** The live feed marks its test messages with the level `TEST` (status
+  `Actual`), which the plugin did not know; they would have been shown with the CAP severity. `TEST` is now in the
+  level table and in the default of `LU_TEST_LEVELS` (`T,TEST,D,LU-Alert Test,LU-Alert Exercise`). If you have set
+  `LU_TEST_LEVELS` yourself, add `TEST`.
+- **The same alert published again is shown once.** The feed publishes a recall again as a new alert, with its own
+  number and no reference to the first one. Alerts with the same severity, headline, description, instruction,
+  event, area and end time are now shown once (the newest); `Left out:` counts them as `duplicate`.
+
+### Added
+- **A level the plugin does not know is named once in the log** (`Unknown LU-Alert level '...'`), and in
+  `python3 -m lu_alert --json`, so a change of the feed does not go unnoticed. The CAP severity is still used.
+- Tests for the shapes seen live: the levels `ALERT_LVL_1` to `ALERT_LVL_4` and `TEST`, a Cancel and an Update
+  with a reference in the form of the feed (a different time zone, the same instant), duplicates.
+- The data reference has a section *Seen in the live feed*; the level `D` is still not seen there.
+
 ## [0.1.0] - 2026-11-04
 
 First version: a port of the Home Assistant integration
@@ -44,5 +66,7 @@ Domoticz; **not yet run against the live feed or on a real Domoticz**, see
 ### Decided without a look at the live feed
 - The level code **D** is treated as a **test message**, like the Home Assistant integration does, and every test
   message that is left out is named once in the log. If D is a real level, take it out of `LU_TEST_LEVELS`.
+  (0.1.1: the live feed has not shown a `D` yet.)
 
+[0.1.1]: https://github.com/janreimen/Domoticz-LU-Alert/releases/tag/v0.1.1
 [0.1.0]: https://github.com/janreimen/Domoticz-LU-Alert/releases/tag/v0.1.0

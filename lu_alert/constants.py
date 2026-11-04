@@ -43,8 +43,10 @@ SEVERITY_RANK = {EXTREME: 4, SEVERE: 3, MODERATE: 2, MINOR: 1, INFORMATION: 0, U
 # Choices of the hardware setting "Minimum severity"
 MIN_SEVERITY_CHOICES = ("Unknown", INFORMATION, MINOR, MODERATE, SEVERE, EXTREME)
 
-# The LU-Alert level of a message, as the feed writes it (compared in lower case). Sources: the levels on
-# https://lu-alert.lu (D, N1-N3, A, I, T) and the values of the CAP-LU profile (LU-Alert Level 1-4, Amber, Test, Exercise).
+# The LU-Alert level of a message, as the feed writes it (compared in lower case). The LIVE feed (looked at on
+# 2026-11-04, 100 messages) uses ALERT_LVL_1 ... ALERT_LVL_4 and TEST; the other spellings come from the Home Assistant
+# integration, the levels named on https://lu-alert.lu (D, N1-N3, A, I, T) and the CAP-LU profile (LU-Alert Level 1-4,
+# Amber, Test, Exercise) and have not been seen in the feed.
 LEVEL_TO_SEVERITY = {
     "d": EXTREME,                       # only when D is not a test level (see DEFAULT_TEST_LEVELS)
     "n1": EXTREME,                      # awareness level red
@@ -57,15 +59,16 @@ LEVEL_TO_SEVERITY = {
     "l3": MINOR, "lu-alert level 3": MINOR, "alert_lvl_3": MINOR,
     "i": INFORMATION,
     "lu-alert level 4": INFORMATION, "alert_lvl_4": INFORMATION,
-    "t": TEST, "lu-alert test": TEST, "lu-alert exercise": TEST,
+    "t": TEST, "test": TEST, "lu-alert test": TEST, "lu-alert exercise": TEST,
 }
 # The names of the parameter that carries the level. The feed writes them with the profile prefix
 # ("urn:oasis:...:profile:cap-lu:1.0:cb-eu-level"), the profile document without: the part after the last ':' counts.
 LEVEL_PARAMETERS = ("cb-eu-level", "cb-lu-level")
 # Levels that are treated as test messages (and so left out) unless tests are asked for. "D" is in the list because the
 # Home Assistant integration this plugin follows filters it as a test level; it is also an Extreme level there, which
-# is what it becomes when you take it out of LU_TEST_LEVELS. NOT verified against the live feed: see the README.
-DEFAULT_TEST_LEVELS = ("T", "D", "LU-Alert Test", "LU-Alert Exercise")
+# is what it becomes when you take it out of LU_TEST_LEVELS. D has NOT been seen in the live feed: see the README.
+# TEST is what the live feed writes for its test messages (with the CAP status Actual).
+DEFAULT_TEST_LEVELS = ("T", "TEST", "D", "LU-Alert Test", "LU-Alert Exercise")
 # CAP status values that are not a real alert: Test, Exercise, System and Draft are shown only when tests are shown
 REAL_STATUS = "actual"
 

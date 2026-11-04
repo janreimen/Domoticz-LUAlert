@@ -134,6 +134,16 @@ class StartTests(ControllerCase):
         self.next_poll()
         self.assertEqual(len([t for t in self.logs() if t.startswith("Test message ignored")]), 1)
 
+    def test_a_level_the_plugin_does_not_know_is_named_once_in_the_log(self):
+        self.fake.add("a", fresh_alert("a", level="ALERT_LVL_9", severity="Moderate"))
+        self.start()
+        self.assertEqual(self.value(UNIT_ACTIVE), (0, "1"))                  # still shown, by its CAP severity
+        told = [t for t in self.logs() if t.startswith("Unknown LU-Alert level")]
+        self.assertEqual(len(told), 1)
+        self.assertIn("'ALERT_LVL_9'", told[0])
+        self.next_poll()
+        self.assertEqual(len([t for t in self.logs() if t.startswith("Unknown LU-Alert level")]), 1)
+
     def test_the_description_goes_to_the_verbose_log_only(self):
         self.make(level=2)
         self.fake.add("a", cap_xml("a"))
@@ -240,8 +250,8 @@ class FailureTests(ControllerCase):
         self.assertIn("No alert file is unreadable any more", self.logs())
 
     def test_a_partial_read_is_shown_as_partial_and_recovers(self):
-        self.fake.add("a", cap_xml("a"))
-        self.fake.add("b", cap_xml("b"), modified="2026-11-02T11:00:00")
+        self.fake.add("a", cap_xml("a", headline="one"))
+        self.fake.add("b", cap_xml("b", headline="two"), modified="2026-11-02T11:00:00")
         self.fake.fail.extend([("ok",), ("status", 500)])
         self.start()
         self.assertTrue(self.value(UNIT_FEED_INFO)[1].startswith("Partial"))

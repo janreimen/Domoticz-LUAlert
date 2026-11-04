@@ -277,7 +277,7 @@ class DocumentationTests(unittest.TestCase):
 
     def test_the_test_levels_of_the_code_the_sample_and_the_documents_agree(self):
         joined = ",".join(c.DEFAULT_TEST_LEVELS)
-        self.assertEqual(joined, "T,D,LU-Alert Test,LU-Alert Exercise")
+        self.assertEqual(joined, "T,TEST,D,LU-Alert Test,LU-Alert Exercise")
         for name in ("README.md", ".env.sample"):
             self.assertIn(joined, read(name), name)
         self.assertIn("LU_TEST_LEVELS", read("docs", "LU-ALERT-DATA.md"))
@@ -285,12 +285,18 @@ class DocumentationTests(unittest.TestCase):
     def test_the_decision_about_level_d_is_said_where_a_reader_looks(self):
         for name in ("README.md", "docs/LU-ALERT-DATA.md", "CHANGELOG.md", "ROADMAP.md"):
             self.assertRegex(read(*name.split("/")), r"(?i)level( code)? \W{0,3}D\W", name)
-        self.assertIn("without a look at the live feed", read("README.md"))
+        self.assertIn("has not been seen in the live feed", read("README.md"))
+        self.assertIn("has not been seen in the live feed", read("docs", "LU-ALERT-DATA.md"))
 
-    def test_the_documents_say_that_the_live_feed_was_not_checked(self):
+    def test_the_documents_say_what_of_the_live_feed_was_seen_and_what_not(self):
         for name in ("README.md", "docs/LU-ALERT-DATA.md", "CHANGELOG.md"):
-            self.assertRegex(read(*name.split("/")), r"(?i)not (yet )?(been )?(run against|verified against|checked against)",
-                             name)
+            text = read(*name.split("/"))
+            self.assertIn("2026-11-04", text, name)
+            self.assertRegex(text, r"(?i)live feed", name)
+        self.assertRegex(read("README.md"), r"(?i)not yet\W+been run in a real Domoticz")
+        self.assertRegex(read("docs", "LU-ALERT-DATA.md"), r"(?i)\*\*Not seen:\*\*")
+        for level in ("ALERT_LVL_1", "ALERT_LVL_4", "TEST"):
+            self.assertIn(level, read("docs", "LU-ALERT-DATA.md").split("## Seen in the live feed")[1].split("## Differences")[0])
 
     def test_the_licence_question_is_in_the_notice_and_the_readme(self):
         self.assertIn("no licence", read("NOTICE"))

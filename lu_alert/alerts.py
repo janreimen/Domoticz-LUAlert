@@ -12,7 +12,9 @@ This is the part that decides what a person sees, so its rules are written down 
   5. The severity comes from the LU-Alert level of the message (N1, N2, ... see constants.LEVEL_TO_SEVERITY), and
      only without one from the CAP severity field. Nothing is dropped because of its category unless the user
      listed that category.
-  6. The text is taken from the block in the preferred language and, among those, from the fullest channel
+  6. Messages with the same text and the same end (the portal sometimes publishes a recall again under a new number)
+     are shown once, the newest.
+  7. The text is taken from the block in the preferred language and, among those, from the fullest channel
      (app, website) rather than the siren or SMS block.
 """
 from datetime import datetime, timedelta, timezone
@@ -157,6 +159,7 @@ def _local_flag(alert: CapAlert, filters: Filters) -> Optional[bool]:
 def build_snapshot(cap_alerts: Iterable[CapAlert], now: datetime, filters: Filters) -> Snapshot:
     dropped: Dict[str, int] = {}
     ignored_tests: List[Tuple[str, str, str]] = []
+    unknown_levels: Dict[str, None] = {}                # in order of appearance
 
     def drop(reason: str) -> None:
         dropped[reason] = dropped.get(reason, 0) + 1
@@ -199,6 +202,8 @@ def build_snapshot(cap_alerts: Iterable[CapAlert], now: datetime, filters: Filte
             drop("old and without an end")
             continue
         code = level_code(alert.infos)
+        if code and code.lower() not in LEVEL_TO_SEVERITY:
+            unknown_levels[code] = None                 # named once in the log: the table may need a new entry
         severity = severity_of(alert, code)
         is_test = severity == TEST or _is_test(alert, code, filters.test_levels)
         if is_test and not filters.show_test:
@@ -229,11 +234,25 @@ def build_snapshot(cap_alerts: Iterable[CapAlert], now: datetime, filters: Filte
             allergen_match=any(a.lower() in text for a in filters.allergens)))
 
     active.sort(key=lambda a: (a.rank, a.sent or _EPOCH), reverse=True)
+    # The portal sometimes publishes the same text again as a new alert (its own number, no reference to the first).
+    # Of messages that agree in everything a person reads and in their end, only the newest is kept.
+    seen = set()
+    unique: List[ActiveAlert] = []
+    for alert in active:
+        key = (alert.severity, alert.headline, alert.description, alert.instruction, alert.event, alert.area_desc,
+               alert.expires)
+        if key in seen:
+            drop("duplicate")
+        else:
+            seen.add(key)
+            unique.append(alert)
+    active = unique
     counts = {severity: 0 for severity in SEVERITIES}
     for alert in active:
         counts[alert.severity] += 1
     ends = [a.expires for a in active if a.expires is not None]
-    return Snapshot(tuple(active), counts, min(ends) if ends else None, dropped, tuple(ignored_tests))
+    return Snapshot(tuple(active), counts, min(ends) if ends else None, dropped, tuple(ignored_tests),
+                    tuple(unknown_levels))
 
 
 # -- text for people ------------------------------------------------------------------------------------------

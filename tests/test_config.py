@@ -40,7 +40,7 @@ class HardwareFieldTests(EnvCase):
         self.assertEqual((s.keywords, s.allergens, s.dataset_url, s.max_resources, s.alert_devices),
                          ((), (), DATASET_URL, 100, 3))
         self.assertEqual((s.stale_days, s.show_test, s.ignore_categories, s.allowed_hosts), (10, False, (), ()))
-        self.assertEqual(s.test_levels, ("t", "d", "lu-alert test", "lu-alert exercise"))
+        self.assertEqual(s.test_levels, ("t", "test", "d", "lu-alert test", "lu-alert exercise"))
         self.assertIsNone(s.env_file)
         self.assertEqual((s.notes, s.warnings), ([], []))
 

@@ -20,11 +20,11 @@ you can use in notifications, scenes and scripts. It is a port of the Home Assis
 * **Modular.** Feed client, CAP parser, alert rules, settings, device layer and polling logic are separate modules;
   only `plugin.py` touches Domoticz.
 
-> **Status:** version 0.1.0. Developed against a **simulated** data.public.lu (a real TLS server inside the test
-> suite) and a simulated Domoticz. **It has not yet been run against the live feed or on a real Domoticz**, and the
-> alert messages it is tested with follow the published CAP-LU profile and the Home Assistant integration, not a
-> message downloaded from the portal. Run `python3 -m lu_alert` first, and read
-> [what is verified and what is not](#what-is-verified-and-what-is-not).
+> **Status:** version 0.1.1. Developed against a **simulated** data.public.lu (a real TLS server inside the test
+> suite) and a simulated Domoticz. The command line (`python3 -m lu_alert`) was run once on a Raspberry Pi against the
+> **live feed on 2026-11-04**: 100 files listed and read, 7 active alerts, no error. **The plugin itself has not yet
+> been run in a real Domoticz**, and the level `D` has not been seen in the feed. Run `python3 -m lu_alert` first, and
+> read [what is verified and what is not](#what-is-verified-and-what-is-not).
 >
 > **This is not a warning system.** It shows what the portal publishes, a few minutes late. Keep the official
 > LU-Alert (cell broadcast, app, sirens) as your warning; use this plugin for automation next to it.
@@ -115,7 +115,7 @@ plugin with a message that names the key. Changes take effect when the hardware 
 | `LU_STALE_DAYS` | 10 | An alert without an end time is shown this many days (1-365) |
 | `LU_REFRESH_INTERVAL` | 300 | An unchanged value is rewritten this often, in seconds (30-86400) |
 | `LU_SHOW_TEST_ALERTS` | 0 | `1` also shows test messages, as severity *Test* (grey) |
-| `LU_TEST_LEVELS` | `T,D,LU-Alert Test,LU-Alert Exercise` | LU-Alert levels that count as test messages. **See [the level D](#the-level-d)** |
+| `LU_TEST_LEVELS` | `T,TEST,D,LU-Alert Test,LU-Alert Exercise` | LU-Alert levels that count as test messages. **See [the level D](#the-level-d)** |
 | `LU_IGNORE_CATEGORIES` | (none) | CAP categories to leave out (`Met`, `Fire`, `Health`, ...). An alert is left out only when *all* its categories are listed |
 
 ## Devices
@@ -162,8 +162,8 @@ The rules in short; the full version, with the level table, is in **[docs/LU-ALE
 ### The level D
 
 The Home Assistant integration treats the level `D` both as Extreme and as a test level, which in practice drops it.
-The plugin does the same by default, **but this was decided without a look at the live feed**. Wrongly hiding a real
-alert is the worse mistake, so every test message that is left out appears once in the Domoticz log, with its
+The plugin does the same by default, **but `D` has not been seen in the live feed** (the test messages seen there
+carry the level `TEST`, which is a test level too). Wrongly hiding a real alert is the worse mistake, so every test message that is left out appears once in the Domoticz log, with its
 level and headline (`Test message ignored (D): ...`). If you find that `D` is a real alert level, remove it from
 `LU_TEST_LEVELS` in `.env`; it is then an Extreme alert.
 
@@ -303,6 +303,15 @@ Domoticz' sensor time-out does not mark a quiet sensor as dead.
   binds none of the names Domoticz injects, imports only the standard library and is the only module that imports
   `Domoticz`; Python 3.7 compatibility (`vermin`).
 
+**Seen in the live feed** (one run of `python3 -m lu_alert` on a Raspberry Pi, 2026-11-04, details in
+[docs/LU-ALERT-DATA.md](docs/LU-ALERT-DATA.md#seen-in-the-live-feed)):
+
+* the dataset lists 100 alert files; all could be read; the levels are `ALERT_LVL_1` to `ALERT_LVL_4` and `TEST`;
+  Cancel and Update messages reference the alert as `[SENDER],identifier,sent`; of the 100 messages 43 were cancelled
+  or replaced and 50 had expired, so 7 alerts were active;
+* what that run showed and the plugin got wrong (all fixed in 0.1.1): the level `TEST` was not known, and the same
+  recall published again under a new number was shown twice.
+
 **Checked against the sources, but not run:**
 
 * the Home Assistant integration (its level table, test levels, parameter names, handling of expiry and references);
@@ -312,13 +321,13 @@ Domoticz' sensor time-out does not mark a quiet sensor as dead.
 
 **Not verified:**
 
-* **the live feed.** The machine this was written on could not reach data.public.lu. The shape of a real message, the
-  level values it uses, the way a Cancel references an alert, how long an alert stays listed and how big the list is
-  are taken from the CAP-LU profile and the integration, not from the portal. **The first thing to do is
-  `python3 -m lu_alert` on your host** and to compare the output with the official app.
-* **a real Domoticz.** The stub follows the documentation, but Domoticz has details of its own: how the Alert devices
+* **more of the live feed.** The machine this was written on could not reach data.public.lu; the feed was looked at
+  once, on one day. Not seen: a level other than the five above, a status other than `Actual`, an alert with a polygon
+  or circle, a message in a language other than the ones asked for, a long-lasting incident. **Run
+  `python3 -m lu_alert` on your host** and compare the output with the official app.
+* **a real Domoticz.** The plugin has not been run in one. The stub follows the documentation, but Domoticz has details of its own: how the Alert devices
   look in the web interface, how a long text is shown, the order of the device names.
-* **the level `D`** ([see above](#the-level-d)).
+* **the level `D`** ([see above](#the-level-d)): never seen in the feed.
 * **the licence of the data**, which is given on the dataset page, and **the licence of the integration this follows**
   (its repository has none; see [NOTICE](NOTICE)).
 * **Domoticz versions and Python versions other than** the ones the tests run on (Python 3.9 to 3.13 in CI; 3.7

@@ -61,6 +61,7 @@ class Controller:
         self._problems: Dict[str, str] = {}             # problem key -> kind of the last one logged
         self._known: Dict[str, ActiveAlert] = {}        # the alerts the log already told about
         self._tests_told: set = set()                   # identifiers of test messages the log already named
+        self._levels_told: set = set()                  # level codes the log already called unknown
         self._first_snapshot = True
         self._down_since: Optional[float] = None
 
@@ -195,6 +196,11 @@ class Controller:
         if first and not current:
             self.log.Log("No active LU-Alert alerts")
         self._known = current
+        for level in snapshot.unknown_levels:
+            if level not in self._levels_told:
+                self._levels_told.add(level)
+                self.log.Log("Unknown LU-Alert level '%s': the CAP severity of the message is used. Please report this "
+                             "level (python3 -m lu_alert --json shows it)" % shorten(level, 40))
         for identifier, level, headline in snapshot.ignored_tests:
             if identifier not in self._tests_told:      # said once, so a real alert taken for a test is not silent
                 self._tests_told.add(identifier)
