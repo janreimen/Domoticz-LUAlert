@@ -40,6 +40,7 @@ class HardwareFieldTests(EnvCase):
         self.assertEqual((s.keywords, s.allergens, s.dataset_url, s.max_resources, s.alert_devices),
                          ((), (), DATASET_URL, 100, 3))
         self.assertEqual((s.stale_days, s.show_test, s.ignore_categories, s.allowed_hosts), (10, False, (), ()))
+        self.assertIs(s.device_description, True)
         self.assertEqual(s.test_levels, ("t", "test", "d", "lu-alert test", "lu-alert exercise"))
         self.assertIsNone(s.env_file)
         self.assertEqual((s.notes, s.warnings), ([], []))
@@ -134,6 +135,7 @@ LU_HTTP_TIMEOUT=20
 LU_ALERT_DEVICES=5
 LU_REFRESH_INTERVAL=600
 LU_STALE_DAYS=3
+LU_DEVICE_DESCRIPTION=0
 LU_SHOW_TEST_ALERTS=1
 LU_TEST_LEVELS=T, Probe
 LU_IGNORE_CATEGORIES=Met, Fire
@@ -144,6 +146,7 @@ LU_ALLOWED_HOSTS=files.example.lu
                          ("https://data.example.lu/api/1/datasets/abc/", 50, 20, 5, 600, 3))
         self.assertEqual((s.show_test, s.test_levels, s.ignore_categories, s.allowed_hosts),
                          (True, ("t", "probe"), ("met", "fire"), ("files.example.lu",)))
+        self.assertIs(s.device_description, False)
         self.assertEqual(s.env_file, self.path)
         self.assertEqual(s.warnings, [])
 
@@ -188,6 +191,7 @@ LU_ALLOWED_HOSTS=files.example.lu
             "LU_ALERT_DEVICES=11": "LU_ALERT_DEVICES must be between 1 and 10",
             "LU_ALERT_DEVICES=0": "LU_ALERT_DEVICES must be between 1 and 10",
             "LU_SHOW_TEST_ALERTS=maybe": "LU_SHOW_TEST_ALERTS must be 0 or 1",
+            "LU_DEVICE_DESCRIPTION=sometimes": "LU_DEVICE_DESCRIPTION must be 0 or 1",
             "LU_DATASET_URL=http://data.public.lu/x": "LU_DATASET_URL must start with https://",
             "LU_DATASET_URL=ftp://data.public.lu/x": "LU_DATASET_URL must start with https://",
             "LU_DATASET_URL=https:///x": "LU_DATASET_URL has no host name",
@@ -205,7 +209,7 @@ LU_ALLOWED_HOSTS=files.example.lu
             self.settings()
 
     def test_an_empty_value_keeps_the_default_except_for_lists(self):
-        self.write("LU_MAX_RESOURCES=\nLU_SHOW_TEST_ALERTS=\nLU_TEST_LEVELS=\n")
+        self.write("LU_MAX_RESOURCES=\nLU_SHOW_TEST_ALERTS=\nLU_DEVICE_DESCRIPTION=\nLU_TEST_LEVELS=\n")
         s = self.settings()
         self.assertEqual((s.max_resources, s.show_test, s.test_levels), (100, False, ()))   # an empty list means: none
 

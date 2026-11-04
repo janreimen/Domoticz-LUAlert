@@ -64,12 +64,12 @@ class VersionTests(unittest.TestCase):
             self.assertRegex(text, r"(?m)^\[%s\]: https?://" % re.escape(version))
 
     def test_changelog_release_link_points_at_this_repository(self):
-        self.assertIn("https://github.com/janreimen/Domoticz-LU-Alert/releases/tag/v%s" % __version__,
+        self.assertIn("https://github.com/janreimen/Domoticz-LUAlert/releases/tag/v%s" % __version__,
                       read("CHANGELOG.md"))
 
     def test_the_user_agent_and_the_url_carry_the_version_and_the_repository(self):
         self.assertIn(__version__, c.USER_AGENT)
-        self.assertEqual(c.PLUGIN_URL, "https://github.com/janreimen/Domoticz-LU-Alert")
+        self.assertEqual(c.PLUGIN_URL, "https://github.com/janreimen/Domoticz-LUAlert")
         self.assertIn(c.PLUGIN_URL, read("plugin.py"))
 
 
@@ -133,7 +133,7 @@ class FileTests(unittest.TestCase):
 
     def test_the_docs_use_the_real_directory_name(self):
         text = read("README.md") + read("DEPLOY.md")
-        self.assertIn("git clone https://github.com/janreimen/Domoticz-LU-Alert.git", text)
+        self.assertIn("git clone https://github.com/janreimen/Domoticz-LUAlert.git", text)
 
     def test_nothing_is_left_over_from_the_plugins_this_one_was_modelled_on(self):
         pattern = re.compile(r"pi-?hole|synosnmp|synology|snmp|openaq|myskoda|voyo|xorfor|meteoalarm", re.I)
@@ -236,7 +236,7 @@ class DocumentationTests(unittest.TestCase):
                 os.environ.update(saved)
         plain = Settings()
         for attribute in ("dataset_url", "max_resources", "http_timeout", "alert_devices", "refresh_interval",
-                          "stale_days", "show_test", "test_levels", "ignore_categories", "allowed_hosts"):
+                          "stale_days", "show_test", "device_description", "test_levels", "ignore_categories", "allowed_hosts"):
             self.assertEqual(getattr(from_sample, attribute), getattr(plain, attribute), attribute)
         self.assertEqual(from_sample.warnings, [])
 
@@ -293,7 +293,8 @@ class DocumentationTests(unittest.TestCase):
             text = read(*name.split("/"))
             self.assertIn("2026-11-04", text, name)
             self.assertRegex(text, r"(?i)live feed", name)
-        self.assertRegex(read("README.md"), r"(?i)not yet\W+been run in a real Domoticz")
+        self.assertRegex(read("README.md"), r"(?i)run in the author's Domoticz 2026\.4")
+        self.assertIn("issues/1", read("README.md"))
         self.assertRegex(read("docs", "LU-ALERT-DATA.md"), r"(?i)\*\*Not seen:\*\*")
         for level in ("ALERT_LVL_1", "ALERT_LVL_4", "TEST"):
             self.assertIn(level, read("docs", "LU-ALERT-DATA.md").split("## Seen in the live feed")[1].split("## Differences")[0])

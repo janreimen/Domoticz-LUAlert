@@ -261,10 +261,34 @@ def format_time(moment: Optional[datetime]) -> str:
     return moment.astimezone().strftime("%Y-%m-%d %H:%M") if moment is not None else ""
 
 
-def summary_line(alert: ActiveAlert, limit: int = MAX_TEXT) -> str:
-    """'[Severe] Storm warning - until 2026-11-03 18:00', at most ``limit`` characters; the headline gives way."""
+DETAIL_SEPARATOR = " | "
+MIN_DETAIL = 30                 # less room than this is not worth a start of the description: it would be a stub
+
+
+def _detail(alert: ActiveAlert) -> str:
+    """The description of an alert without the headline it may repeat at its start."""
+    text = " ".join(alert.description.split())
+    headline = " ".join(alert.headline.split())
+    if headline and text.lower().startswith(headline.lower()):
+        text = text[len(headline):].lstrip(" :.-\u2013\u2014")
+    return text
+
+
+def summary_line(alert: ActiveAlert, limit: int = MAX_TEXT, description: bool = False) -> str:
+    """'[Severe] Storm warning - until 2026-11-03 18:00', at most ``limit`` characters; the headline gives way.
+
+    With ``description`` the start of the description follows (' | Reason: ...') in the room that is left. The
+    headline and the end time come first: the description gets less than MIN_DETAIL characters of room, it is left
+    out, and a long headline is never cut for it.
+    """
     tail = " - until %s" % format_time(alert.expires) if alert.expires else ""
     head = "[%s] " % alert.severity
+    headline = " ".join(alert.headline.split())
+    detail = _detail(alert) if description else ""
+    if detail:
+        room = limit - len(head) - len(headline) - len(tail) - len(DETAIL_SEPARATOR)
+        if room >= MIN_DETAIL:
+            return head + headline + tail + DETAIL_SEPARATOR + shorten(detail, room)
     room = max(10, limit - len(head) - len(tail))
     return head + shorten(alert.headline, room) + tail
 

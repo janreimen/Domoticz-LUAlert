@@ -1,5 +1,5 @@
 """
-<plugin key="LUAlert" name="LU-Alert Luxembourg" author="Jan Reimen" version="0.1.1" wikilink="https://github.com/janreimen/Domoticz-LU-Alert" externallink="https://lu-alert.lu/">
+<plugin key="LUAlert" name="LU-Alert Luxembourg" author="Jan Reimen" version="0.1.2" wikilink="https://github.com/janreimen/Domoticz-LUAlert" externallink="https://lu-alert.lu/">
     <description>
         <h2>LU-Alert Luxembourg</h2><br/>
         Shows the official <b>LU-Alert</b> warnings of the Luxembourg government as Domoticz devices: the number of
@@ -9,7 +9,7 @@
         <h3>Features</h3>
         <ul style="list-style-type:square">
             <li>Active Alerts, Highest Severity (green, yellow, orange, red) and the counts per severity</li>
-            <li>Alert 1 ... Alert 10: the most severe active alerts, with severity, headline and end time</li>
+            <li>Alert 1 ... Alert 10: the most severe active alerts, with severity, headline, end time and the start of the description</li>
             <li>Critical / Severe / Extreme Alert Active switches</li>
             <li>Local Alert Active (the alert area contains your home), Watchlist Match, Allergen Match</li>
             <li>Alerts are cancelled, replaced and ended like the feed says; test messages are left out</li>
@@ -20,7 +20,7 @@
         uses the home location of Domoticz unless you enter another latitude;longitude. More settings (the number of
         alert devices, how test messages are handled) are in the file <tt>.env</tt> beside the plugin.<br/><br/>
         <h3>Documentation</h3>
-        <a href="https://github.com/janreimen/Domoticz-LU-Alert">https://github.com/janreimen/Domoticz-LU-Alert</a><br/>
+        <a href="https://github.com/janreimen/Domoticz-LUAlert">https://github.com/janreimen/Domoticz-LUAlert</a><br/>
         Idea and alert mapping: the Home Assistant integration LU-Alert by koosoli. Data: LU-Alert, data.public.lu.
     </description>
     <params>
@@ -132,7 +132,7 @@ class BasePlugin:
         client = Client(settings.dataset_url, settings.http_timeout, allowed_hosts=settings.allowed_hosts)
         feed = Feed(client, settings.max_resources)
         devices = DeviceManager(Domoticz, lambda: Devices, log, settings.alert_devices,
-                                refresh_seconds=settings.refresh_interval)
+                                refresh_seconds=settings.refresh_interval, with_description=settings.device_description)
         controller = Controller(settings, feed, devices, log)
         Domoticz.Heartbeat(HEARTBEAT_SECONDS)
         try:

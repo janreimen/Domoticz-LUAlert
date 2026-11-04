@@ -346,6 +346,28 @@ class TextTests(unittest.TestCase):
         no_end = snap(cap_xml("b", expires=None)).alerts[0]
         self.assertNotIn("until", summary_line(no_end))
 
+    def test_the_summary_line_with_the_description(self):
+        alert = snap(cap_xml("a")).alerts[0]
+        base = "[Severe] Storm warning for the whole country - until 2026-11-02 14:00"
+        self.assertEqual(summary_line(alert, description=True), base + " | Strong winds expected. Gusts up to 110 km/h.")
+        self.assertEqual(summary_line(alert, description=False), base)
+        short = summary_line(alert, 105, description=True)          # 105 - 69 - 3 = 33 characters for the description
+        self.assertEqual(len(short), 105)
+        self.assertTrue(short.startswith(base + " | Strong winds") and short.endswith("..."))
+
+    def test_the_description_is_left_out_when_there_is_too_little_room_for_it(self):
+        alert = snap(cap_xml("a", headline="H" * 100, description="Some description of the alert")).alerts[0]
+        self.assertEqual(summary_line(alert, 160, description=True), summary_line(alert, 160))       # 160 - 100 - 9 - 25 - 3 < 30
+        self.assertIn(" | ", summary_line(alert, 200, description=True))
+
+    def test_the_description_does_not_repeat_the_headline(self):
+        alert = snap(cap_xml("a", headline="Storm warning", description="Storm warning: trees may fall.")).alerts[0]
+        self.assertTrue(summary_line(alert, description=True).endswith(" | trees may fall."))
+        same = snap(cap_xml("b", headline="Storm warning", description="Storm warning")).alerts[0]
+        self.assertEqual(summary_line(same, description=True), summary_line(same))
+        none = snap(cap_xml("c", description="")).alerts[0]
+        self.assertEqual(summary_line(none, description=True), summary_line(none))
+
     def test_format_time(self):
         self.assertEqual(format_time(None), "")
         self.assertEqual(format_time(NOW), "2026-11-02 12:00")

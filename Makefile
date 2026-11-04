@@ -1,4 +1,4 @@
-PLUGIN   := Domoticz-LU-Alert
+PLUGIN   := Domoticz-LUAlert
 VERSION  := $(shell sed -n 's/^__version__ = "\(.*\)"$$/\1/p' lu_alert/__init__.py)
 PYTHON   ?= python3
 DIST     := dist

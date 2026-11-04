@@ -51,7 +51,26 @@ class MessageTests(unittest.TestCase):
     def test_escaped_markup_in_a_description_becomes_plain_text_too(self):
         info = info_xml(description="&lt;p&gt;Water &amp;amp; food&lt;/p&gt;&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/ul&gt;")
         [alert] = parse_cap(cap_xml(infos=[info]))
-        self.assertEqual(alert.infos[0].description, "Water &amp; food one two")
+        self.assertEqual(alert.infos[0].description, "Water & food one two")
+
+    def test_entities_the_feed_escaped_twice_are_decoded(self):
+        # the live feed: a literal &quot; in the text of the description
+        info = info_xml(description="Note: The &amp;quot;end date&amp;quot; shows the display period &amp;amp; nothing else.")
+        [alert] = parse_cap(cap_xml(infos=[info]))
+        self.assertEqual(alert.infos[0].description, 'Note: The "end date" shows the display period & nothing else.')
+
+    def test_a_decoded_angle_bracket_is_not_taken_for_a_tag(self):
+        info = info_xml(description="1 &amp;lt; 2 and 3 &amp;gt; 2")
+        [alert] = parse_cap(cap_xml(infos=[info]))
+        self.assertEqual(alert.infos[0].description, "1 < 2 and 3 > 2")
+
+    def test_markdown_links_of_the_live_feed(self):
+        text = ("More information: [www.securite-alimentaire.public.lu/fr/danger/en](https://www.securite-alimentaire.public.lu/fr/danger/en) "
+                "and [this page](https://example.lu/a?b=1) or [https://example.lu/](https://example.lu/) [not a link] (x)")
+        [alert] = parse_cap(cap_xml(infos=[info_xml(description=text)]))
+        self.assertEqual(alert.infos[0].description,
+                         "More information: www.securite-alimentaire.public.lu/fr/danger/en and this page (https://example.lu/a?b=1) "
+                         "or https://example.lu/ [not a link] (x)")
 
     def test_a_script_in_a_text_is_just_text(self):
         info = info_xml(headline="<script>alert(1)</script>Danger", description="&lt;script&gt;x()&lt;/script&gt;ok")

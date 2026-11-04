@@ -13,7 +13,7 @@ The two devices to look at first: how many alerts there are and how bad the wors
 | Unit | Name | Type | Unit label | Shows |
 |---:|---|---|---|---|
 | 1 | Active Alerts | Custom Sensor | alerts | the number of alerts in force after all filters (minimum severity, location, ignored categories) |
-| 2 | Highest Severity | Alert, read-only | - | the colour and the text of the most severe active alert; green "No active alerts" when there is none |
+| 2 | Highest Severity | Alert, read-only | - | the colour and the text of the most severe active alert (same text as *Alert 1*); green "No active alerts" when there is none |
 
 ## Switches for notifications and scripts (units 3-8)
 
@@ -51,7 +51,7 @@ One counter per severity, for graphs and for rules such as "two or more Moderate
 
 ## Alert 1 ... Alert 10 (units 11-20)
 
-One Alert device per active alert, the most severe first (of equal severity the newest first). Each shows a colour and a text such as `[Severe] Storm warning for the whole country - until 2026-11-02 14:00`. A slot without an alert is green and says *No alert*.
+One Alert device per active alert, the most severe first (of equal severity the newest first). Each shows a colour and a text such as `[Severe] Storm warning for the whole country - until 2026-11-02 14:00 | Strong winds are expected ...`: severity, headline, end time and, as far as the 200 characters of a Domoticz text allow, the start of the description (`LU_DEVICE_DESCRIPTION=0` in `.env` leaves it out). A slot without an alert is green and says *No alert*.
 
 Only the first 3 are created (`LU_ALERT_DEVICES` in `.env`, 1-10); the *Active Alerts* counter and the per-severity counters always count all alerts. A slot above the configured number that exists from an earlier setting turns grey and says *Not in use (raise LU_ALERT_DEVICES in .env)*; it is never deleted by the plugin.
 

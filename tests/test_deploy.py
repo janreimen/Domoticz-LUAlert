@@ -30,7 +30,7 @@ class DeployScriptTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.plugins = os.path.join(self.tmp, "plugins")
         os.makedirs(self.plugins)
-        self.dir = os.path.join(self.plugins, "Domoticz-LU-Alert")
+        self.dir = os.path.join(self.plugins, "Domoticz-LUAlert")
         self.backups = os.path.join(self.tmp, "backups")
 
     def deploy(self, *args, expect=0):
@@ -78,7 +78,7 @@ class DeployScriptTests(unittest.TestCase):
             fh.write("mine")
         self.deploy()
         self.assertEqual(len(self.backup_files()), 1)
-        self.assertEqual(os.listdir(self.plugins), ["Domoticz-LU-Alert"])    # nothing else is loaded as a plugin
+        self.assertEqual(os.listdir(self.plugins), ["Domoticz-LUAlert"])    # nothing else is loaded as a plugin
         self.assertTrue(os.path.exists(os.path.join(self.dir, "local-notes.txt")))
 
     def test_a_env_file_of_the_user_survives_an_update_and_the_one_of_the_source_is_never_deployed(self):
@@ -123,6 +123,36 @@ class DeployScriptTests(unittest.TestCase):
         self.assertNotIn("# local edit", read(marker))
         self.deploy("--rollback")
         self.assertIn("# local edit", read(marker))
+
+    def test_a_second_copy_of_the_plugin_in_another_directory_stops_the_deployment(self):
+        old = os.path.join(self.plugins, "Domoticz-LU-Alert")           # an installation under an earlier name
+        os.makedirs(old)
+        with open(os.path.join(old, "plugin.py"), "w") as fh:
+            fh.write('<plugin key="LUAlert" name="LU-Alert Luxembourg" version="0.1.1">\n')
+        out = self.deploy(expect=1)
+        self.assertIn("already installed in %s" % old, out)
+        self.assertIn("Nothing was changed", out)
+        self.assertEqual(sorted(os.listdir(self.plugins)), ["Domoticz-LU-Alert"])
+        out = self.deploy("--dry-run", expect=1)
+        self.assertIn("already installed", out)
+        self.dir = old                                                  # updating that copy is what the message asks for
+        self.assertIn("Version:", self.deploy())
+
+    def test_other_plugins_next_to_it_do_not_matter(self):
+        other = os.path.join(self.plugins, "Some-Other-Plugin")
+        os.makedirs(other)
+        with open(os.path.join(other, "plugin.py"), "w") as fh:
+            fh.write('<plugin key="SomethingElse" name="x" version="1">\n')
+        self.assertIn("new install", self.deploy())
+
+    def test_a_rollback_is_not_stopped_by_a_second_copy(self):
+        self.deploy()
+        self.deploy()                                                   # makes a backup
+        old = os.path.join(self.plugins, "Domoticz-LU-Alert")
+        os.makedirs(old)
+        with open(os.path.join(old, "plugin.py"), "w") as fh:
+            fh.write('<plugin key="LUAlert" version="0.1.1">\n')
+        self.assertIn("Rolled back", self.deploy("--rollback"))
 
     def test_rollback_without_backup_fails_cleanly(self):
         self.deploy()

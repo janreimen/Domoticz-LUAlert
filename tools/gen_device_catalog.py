@@ -17,7 +17,7 @@ TARGET = os.path.join(ROOT, "docs", "DEVICES.md")
 # what each fixed device shows
 MEANING = {
     "active": "the number of alerts in force after all filters (minimum severity, location, ignored categories)",
-    "highest": "the colour and the text of the most severe active alert; green \"No active alerts\" when there is none",
+    "highest": "the colour and the text of the most severe active alert (same text as *Alert 1*); green \"No active alerts\" when there is none",
     "critical": "On while at least one *Extreme* or *Severe* alert is active",
     "severe": "On while at least one *Severe* alert is active",
     "extreme": "On while at least one *Extreme* alert is active",
@@ -94,8 +94,10 @@ def render():
         "## Alert 1 ... Alert %d (units %d-%d)" % (c.MAX_ALERT_DEVICES, c.UNIT_ALERT_FIRST, c.UNIT_ALERT_LAST),
         "",
         "One Alert device per active alert, the most severe first (of equal severity the newest first). Each shows a "
-        "colour and a text such as `[Severe] Storm warning for the whole country - until 2026-11-02 14:00`. A slot "
-        "without an alert is green and says *%s*." % c.TEXT_NO_ALERT,
+        "colour and a text such as `[Severe] Storm warning for the whole country - until 2026-11-02 14:00 | Strong "
+        "winds are expected ...`: severity, headline, end time and, as far as the %d characters of a Domoticz text "
+        "allow, the start of the description (`LU_DEVICE_DESCRIPTION=0` in `.env` leaves it out). A slot "
+        "without an alert is green and says *%s*." % (c.MAX_TEXT, c.TEXT_NO_ALERT),
         "",
         "Only the first %d are created (`LU_ALERT_DEVICES` in `.env`, 1-%d); the *Active Alerts* counter and the "
         "per-severity counters always count all alerts. A slot above the configured number that exists from an "

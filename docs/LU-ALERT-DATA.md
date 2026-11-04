@@ -118,6 +118,22 @@ A polygon is tested with the ray-casting rule on latitude/longitude as plane coo
 for areas the size of a municipality; a circle (`lat,lon radius-in-km`) with the haversine distance. The answer is
 *inside*, *outside* or *no geometry*.
 
+## The text of an alert
+
+* **Description and instruction** are plain text: tags are removed, line breaks become spaces, entities are decoded.
+  The feed escapes some entities twice (a literal `&quot;` in the text), so they are decoded once more after the
+  tags are gone. A Markdown link `[label](https://address)` becomes the label, plus the address when the label does
+  not already say it.
+* **On the devices** (*Highest Severity*, *Alert 1 ...*) the text is `[Minor] Headline - until 2026-11-06 16:14 |
+  start of the description`, cut to the 200 characters a Domoticz text keeps. The headline and the end time come
+  first and are never cut for the description; with less than 30 characters of room the description is left out, and
+  a description that only repeats the headline is left out too. `LU_DEVICE_DESCRIPTION=0` in `.env` shows headline
+  and end time only.
+* **Why:** the headline is often the same for different alerts. The food recalls of the live feed have one headline
+  (`Recall : Curly green cabbage sold in bulk`) for several shops, and only the description says which shop and which
+  period.
+* **In the log**, at the verbose level, the description of every new alert (up to 600 characters).
+
 ## Seen in the live feed
 
 `python3 -m lu_alert` was run once on a Raspberry Pi against the live feed on **2026-11-04** (100 alert files listed,
@@ -153,7 +169,7 @@ cancelled or replaced and 50 that had expired, so a feed this size is mostly his
 ## Checking the feed
 
 ```sh
-cd /srv/domoticz/plugins/Domoticz-LU-Alert
+cd /srv/domoticz/plugins/Domoticz-LUAlert
 python3 -m lu_alert                       # the live feed, all alerts
 python3 -m lu_alert --json                # the same as JSON, for a bug report
 python3 -m lu_alert --xml saved.xml       # a CAP file from disk

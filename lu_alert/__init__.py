@@ -1,4 +1,4 @@
-"""Domoticz-LU-Alert: the official LU-Alert warnings of Luxembourg as native Domoticz devices.
+"""Domoticz-LUAlert: the official LU-Alert warnings of Luxembourg as native Domoticz devices.
 
 Package layout (each module has exactly one job):
 
@@ -19,4 +19,4 @@ Package layout (each module has exactly one job):
 ``plugin.py`` is thin glue and the only module that imports ``Domoticz``.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"

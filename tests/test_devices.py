@@ -148,12 +148,40 @@ class ShowTests(DeviceCase):
     def test_a_severe_alert(self):
         self.manager.show(snapshot(cap_xml("a")))
         self.assertEqual(self.value(UNIT_ACTIVE), (0, "1"))
-        self.assertEqual(self.value(UNIT_HIGHEST), (4, "[Severe] Storm warning for the whole country - until 2026-11-02 14:00"))
+        line = "[Severe] Storm warning for the whole country - until 2026-11-02 14:00"
+        self.assertEqual(self.value(UNIT_HIGHEST), (4, line + " | Strong winds expected. Gusts up to 110 km/h."))
+        self.assertEqual(self.value(UNIT_ALERT_FIRST)[1], self.value(UNIT_HIGHEST)[1])
         self.assertEqual([self.value(u)[1] for u in (UNIT_CRITICAL, UNIT_SEVERE, UNIT_EXTREME)], ["On", "On", "Off"])
         self.assertEqual(self.value(UNIT_COUNT_SEVERE), (0, "1"))
         self.assertEqual(self.value(UNIT_COUNT_EXTREME), (0, "0"))
         self.assertEqual(self.value(UNIT_ALERT_FIRST)[0], 4)
         self.assertEqual(self.value(UNIT_ALERT_FIRST + 1), (1, "No alert"))
+
+    def test_without_the_description_only_headline_and_end_time_are_shown(self):
+        manager = self.make(with_description=False)
+        manager.show(snapshot(cap_xml("a")))
+        line = "[Severe] Storm warning for the whole country - until 2026-11-02 14:00"
+        self.assertEqual(self.value(UNIT_HIGHEST), (4, line))
+        self.assertEqual(self.value(UNIT_ALERT_FIRST), (4, line))
+
+    def test_two_alerts_with_one_headline_are_told_apart_by_the_description(self):
+        # the live feed: a recall per shop, the same headline
+        shops = ("La Grande Epicerie Massen", "Colruyt")
+        documents = [cap_xml("s%d" % i, level="N3", headline="Recall : Curly green cabbage sold in bulk",
+                             description="Reason: Too high content of a pesticide residue Name: Curly green cabbage "
+                                         "Bulk sale in: %s Period of sale: 14/10/2026 - 30/10/2026" % shop,
+                             sent=NOW.replace(minute=i)) for i, shop in enumerate(shops, 1)]
+        self.manager.show(snapshot(*documents))
+        first, second = self.value(UNIT_ALERT_FIRST)[1], self.value(UNIT_ALERT_FIRST + 1)[1]
+        self.assertIn("Colruyt", first)
+        self.assertIn("La Grande Epicerie Massen", second)
+        self.assertLessEqual(max(len(first), len(second)), 200)
+
+    def test_the_text_never_exceeds_what_domoticz_keeps(self):
+        self.manager.show(snapshot(cap_xml("a", description="word " * 400)))
+        for unit in (UNIT_HIGHEST, UNIT_ALERT_FIRST):
+            self.assertLessEqual(len(self.value(unit)[1]), 200)
+            self.assertTrue(self.value(unit)[1].endswith("..."))
 
     def test_the_colours(self):
         for level, colour in (("N1", 4), ("N2", 4), ("A", 3), ("N3", 2), ("I", 1)):

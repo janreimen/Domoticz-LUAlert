@@ -37,8 +37,10 @@ def _custom_unit(options_text: str) -> str:
 
 class DeviceManager:
     def __init__(self, domoticz: Any, get_devices: Callable[[], Dict[int, Any]], logger: Any, alert_devices: int = 3,
-                 clock: Callable[[], float] = time.monotonic, refresh_seconds: int = REFRESH_SECONDS) -> None:
+                 clock: Callable[[], float] = time.monotonic, refresh_seconds: int = REFRESH_SECONDS,
+                 with_description: bool = True) -> None:
         self.dz = domoticz
+        self.with_description = with_description
         self.get_devices = get_devices
         self.log = logger
         self.clock = clock
@@ -124,7 +126,7 @@ class DeviceManager:
         if top is None:
             self._write(UNIT_HIGHEST, ALERT_GREEN, TEXT_NO_ALERTS, now)
         else:
-            self._write(UNIT_HIGHEST, SEVERITY_ALERT_LEVEL[top.severity], summary_line(top), now)
+            self._write(UNIT_HIGHEST, SEVERITY_ALERT_LEVEL[top.severity], summary_line(top, description=self.with_description), now)
         extreme, severe = counts.get(EXTREME, 0), counts.get(SEVERE, 0)
         self._flag(UNIT_CRITICAL, extreme + severe > 0, now)
         self._flag(UNIT_SEVERE, severe > 0, now)
@@ -139,7 +141,7 @@ class DeviceManager:
             if index < self.alert_devices:
                 if index < len(snapshot.alerts):
                     alert = snapshot.alerts[index]
-                    self._write(unit, SEVERITY_ALERT_LEVEL[alert.severity], summary_line(alert), now)
+                    self._write(unit, SEVERITY_ALERT_LEVEL[alert.severity], summary_line(alert, description=self.with_description), now)
                 else:
                     self._write(unit, ALERT_GREEN, TEXT_NO_ALERT, now)
             elif unit in self.get_devices():                    # a slot beyond the configured number, left from before

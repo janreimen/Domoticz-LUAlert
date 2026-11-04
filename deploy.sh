@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy.sh - install Domoticz-LU-Alert into a Domoticz plugins directory,
+# deploy.sh - install Domoticz-LUAlert into a Domoticz plugins directory,
 # on this machine or on another one over SSH.
 #
 #   ./deploy.sh                                   # install on this machine
@@ -16,7 +16,7 @@
 #   5. restores the owner of the directory, restarts Domoticz
 set -euo pipefail
 
-PLUGIN_NAME="Domoticz-LU-Alert"
+PLUGIN_NAME="Domoticz-LUAlert"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 HOST=""
@@ -155,6 +155,18 @@ if [ "$need_root" = 1 ] && [ "$(id -u)" != 0 ]; then
 fi
 RSUDO=""
 [ "$(id -u)" = 0 ] || RSUDO="sudo -n"
+
+# 1b. a second copy of the plugin: Domoticz would load both, and both have the plugin key LUAlert -----------------
+if [ "$ROLLBACK" != 1 ]; then
+    for other in "$PARENT"/*/plugin.py; do
+        [ -f "$other" ] || continue
+        other_dir="$(dirname "$other")"
+        [ "$other_dir" = "${DIR%/}" ] && continue
+        if grep -q 'key="LUAlert"' "$other" 2>/dev/null; then
+            die "the plugin is already installed in $other_dir, and two copies would both be loaded: update that one (--dir $other_dir) or remove it first. Nothing was changed"
+        fi
+    done
+fi
 
 OWNER=""
 if [ -d "$DIR" ]; then OWNER="$(stat -c '%U:%G' "$DIR" 2>/dev/null || true)"

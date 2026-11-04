@@ -45,7 +45,7 @@ class Settings:
                  stale_days: int = DEFAULT_STALE_DAYS, show_test: bool = False,
                  test_levels: Tuple[str, ...] = DEFAULT_TEST_LEVELS, ignore_categories: Tuple[str, ...] = (),
                  allowed_hosts: Tuple[str, ...] = (), env_file: Optional[str] = None, notes: Optional[List[str]] = None,
-                 warnings: Optional[List[str]] = None) -> None:
+                 warnings: Optional[List[str]] = None, device_description: bool = True) -> None:
         self.interval = interval
         self.min_severity = min_severity
         self.language = language
@@ -61,6 +61,7 @@ class Settings:
         self.refresh_interval = refresh_interval
         self.stale_days = stale_days
         self.show_test = show_test
+        self.device_description = device_description    # the start of the description in the alert devices
         self.test_levels = tuple(level.lower() for level in test_levels)
         self.ignore_categories = tuple(c.lower() for c in ignore_categories)
         self.allowed_hosts = tuple(allowed_hosts)       # extra hosts alert files may be fetched from (.env)
@@ -183,6 +184,7 @@ ENV_SPECS: Dict[str, _Spec] = {
     "LU_ALERT_DEVICES": _Spec("alert_devices", "int", 1, MAX_ALERT_DEVICES),
     "LU_REFRESH_INTERVAL": _Spec("refresh_interval", "int", 30, 86400),
     "LU_STALE_DAYS": _Spec("stale_days", "int", 1, 365),
+    "LU_DEVICE_DESCRIPTION": _Spec("device_description", "bool"),
     "LU_SHOW_TEST_ALERTS": _Spec("show_test", "bool"),
     "LU_TEST_LEVELS": _Spec("test_levels", "list"),
     "LU_IGNORE_CATEGORIES": _Spec("ignore_categories", "list"),

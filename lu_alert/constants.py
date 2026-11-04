@@ -9,8 +9,8 @@ from . import __version__
 
 PLUGIN_KEY = "LUAlert"
 PLUGIN_NAME = "LU-Alert Luxembourg"
-PLUGIN_URL = "https://github.com/janreimen/Domoticz-LU-Alert"
-USER_AGENT = "Domoticz-LU-Alert/%s (+%s)" % (__version__, PLUGIN_URL)
+PLUGIN_URL = "https://github.com/janreimen/Domoticz-LUAlert"
+USER_AGENT = "Domoticz-LUAlert/%s (+%s)" % (__version__, PLUGIN_URL)
 
 # The dataset "Alertes du système LU-Alert" on data.public.lu: one CAP XML file per message.
 DATASET_URL = "https://data.public.lu/api/1/datasets/67aca67bcaea3ae62308114f/"

@@ -5,6 +5,32 @@ All notable changes to this project are documented here. The format follows
 (`MAJOR.MINOR.PATCH`, optionally a fourth `.N` for small fixes) so that release tags work with plugin managers
 such as PyPluginStore.
 
+## [0.1.2] - 2026-11-04
+
+### Added
+- **The alert devices show the start of the description.** *Highest Severity* and *Alert 1 ...* now read
+  `[Minor] Recall : Savoy cabbage sold in bulk - until 2026-11-06 16:14 | Reason: Too high content of prothioconazole
+  (pesticide residue) Name: Savoy Cabbage Bulk sale in: Colruyt Period of sale: 14/1...`, as far as the 200 characters
+  of a Domoticz text allow. The reason: the live feed publishes several alerts with one headline (a recall per shop)
+  and only the description tells them apart. Headline and end time always come first. `LU_DEVICE_DESCRIPTION=0` in
+  `.env` brings the old text back. The unit numbers do not change.
+
+### Fixed
+- **Entities and links in descriptions.** The feed escapes some entities twice, so the text held a literal `&quot;`;
+  they are decoded now (also `&amp;`, which was shown as `&amp;` before). Markdown links
+  `[label](https://address)` become the label, plus the address when the label does not already say it.
+- **The repository name** in the plugin, the documents, the issue templates and `deploy.sh` is `Domoticz-LUAlert`,
+  like the repository (it said `Domoticz-LU-Alert`, which does not exist). The default directory of `deploy.sh` is
+  `Domoticz-LUAlert` now. An installation in the old directory keeps working: update it with `--dir`.
+- **`deploy.sh` does not leave two copies.** When another directory below `plugins/` already holds this plugin (the
+  plugin key is the same, Domoticz would load both), it stops before changing anything and names that directory.
+  A rollback is not affected.
+
+### Changed
+- The documents say that the plugin runs in a real Domoticz 2026.4 since 2026-11-04, and name
+  [issue #1](https://github.com/janreimen/Domoticz-LUAlert/issues/1) (Domoticz restarted after the hardware was
+  stopped; not understood yet).
+
 ## [0.1.1] - 2026-11-04
 
 The first look at the live feed: `python3 -m lu_alert` was run on a Raspberry Pi against data.public.lu (100 alert
@@ -68,5 +94,6 @@ Domoticz; **not yet run against the live feed or on a real Domoticz**, see
   message that is left out is named once in the log. If D is a real level, take it out of `LU_TEST_LEVELS`.
   (0.1.1: the live feed has not shown a `D` yet.)
 
-[0.1.1]: https://github.com/janreimen/Domoticz-LU-Alert/releases/tag/v0.1.1
-[0.1.0]: https://github.com/janreimen/Domoticz-LU-Alert/releases/tag/v0.1.0
+[0.1.2]: https://github.com/janreimen/Domoticz-LUAlert/releases/tag/v0.1.2
+[0.1.1]: https://github.com/janreimen/Domoticz-LUAlert/releases/tag/v0.1.1
+[0.1.0]: https://github.com/janreimen/Domoticz-LUAlert/releases/tag/v0.1.0

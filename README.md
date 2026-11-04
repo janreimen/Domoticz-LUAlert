@@ -1,4 +1,4 @@
-# Domoticz-LU-Alert
+# Domoticz-LUAlert
 
 A [Domoticz](https://www.domoticz.com) plugin that shows the official **LU-Alert** warnings of the Luxembourg
 government as devices: how many alerts are active, how severe the worst one is, one device per alert, and switches
@@ -7,7 +7,8 @@ you can use in notifications, scenes and scripts. It is a port of the Home Assis
 
 * **Active Alerts and Highest Severity.** A counter and a coloured alert device (green, yellow, orange, red) with the
   headline and the end time of the worst alert; counters for Extreme, Severe, Moderate, Minor and Information.
-* **Alert 1 ... Alert 3** (up to 10): the most severe active alerts, each with severity, headline and end time.
+* **Alert 1 ... Alert 3** (up to 10): the most severe active alerts, each with severity, headline, end time and the
+  start of the description (as far as the 200 characters of a Domoticz text allow).
 * **Switches for your rules.** *Critical*, *Severe* and *Extreme Alert Active*; *Local Alert Active* (the area of an
   alert contains your home); *Watchlist Match* and *Allergen Match* (your keywords occur in an alert, for example
   `storm`, `flood` or `peanuts`).
@@ -20,11 +21,12 @@ you can use in notifications, scenes and scripts. It is a port of the Home Assis
 * **Modular.** Feed client, CAP parser, alert rules, settings, device layer and polling logic are separate modules;
   only `plugin.py` touches Domoticz.
 
-> **Status:** version 0.1.1. Developed against a **simulated** data.public.lu (a real TLS server inside the test
-> suite) and a simulated Domoticz. The command line (`python3 -m lu_alert`) was run once on a Raspberry Pi against the
-> **live feed on 2026-11-04**: 100 files listed and read, 7 active alerts, no error. **The plugin itself has not yet
-> been run in a real Domoticz**, and the level `D` has not been seen in the feed. Run `python3 -m lu_alert` first, and
-> read [what is verified and what is not](#what-is-verified-and-what-is-not).
+> **Status:** version 0.1.2. Developed against a **simulated** data.public.lu (a real TLS server inside the test
+> suite) and a simulated Domoticz. Since **2026-11-04** it has run in the author's Domoticz 2026.4 (Raspberry Pi OS
+> Trixie, Python 3.13) against the **live feed**: it reads the feed, creates its devices and shows the alerts. That is
+> days of use, not months; the level `D` has not been seen in the feed, and
+> [issue #1](https://github.com/janreimen/Domoticz-LUAlert/issues/1) (Domoticz restarted after the hardware was
+> stopped) is not understood yet. Read [what is verified and what is not](#what-is-verified-and-what-is-not).
 >
 > **This is not a warning system.** It shows what the portal publishes, a few minutes late. Keep the official
 > LU-Alert (cell broadcast, app, sirens) as your warning; use this plugin for automation next to it.
@@ -48,7 +50,7 @@ No account and no key are needed. Nothing is sent to the portal except the reque
 
 ```sh
 cd /srv/domoticz/plugins                  # your Domoticz plugin directory, e.g. ~/domoticz/plugins
-git clone https://github.com/janreimen/Domoticz-LU-Alert.git
+git clone https://github.com/janreimen/Domoticz-LUAlert.git
 sudo systemctl restart domoticz
 ```
 
@@ -70,7 +72,7 @@ The devices appear within a few seconds. Full instructions, updates, rollback an
 Before you add the hardware, and whenever the devices show something you do not expect:
 
 ```sh
-cd /srv/domoticz/plugins/Domoticz-LU-Alert
+cd /srv/domoticz/plugins/Domoticz-LUAlert
 python3 -m lu_alert                       # the live feed: the alerts the plugin would show
 python3 -m lu_alert --json                # the same as JSON (for a bug report; leave out --location)
 python3 -m lu_alert --language de --min-severity Moderate
@@ -114,6 +116,7 @@ plugin with a message that names the key. Changes take effect when the hardware 
 | `LU_ALERT_DEVICES` | 3 | How many *Alert n* devices are created (1-10) |
 | `LU_STALE_DAYS` | 10 | An alert without an end time is shown this many days (1-365) |
 | `LU_REFRESH_INTERVAL` | 300 | An unchanged value is rewritten this often, in seconds (30-86400) |
+| `LU_DEVICE_DESCRIPTION` | 1 | `1`: the alert devices show the start of the description after the headline and the end time. `0`: headline and end time only |
 | `LU_SHOW_TEST_ALERTS` | 0 | `1` also shows test messages, as severity *Test* (grey) |
 | `LU_TEST_LEVELS` | `T,TEST,D,LU-Alert Test,LU-Alert Exercise` | LU-Alert levels that count as test messages. **See [the level D](#the-level-d)** |
 | `LU_IGNORE_CATEGORIES` | (none) | CAP categories to leave out (`Met`, `Fire`, `Health`, ...). An alert is left out only when *all* its categories are listed |
@@ -325,25 +328,29 @@ Domoticz' sensor time-out does not mark a quiet sensor as dead.
   once, on one day. Not seen: a level other than the five above, a status other than `Actual`, an alert with a polygon
   or circle, a message in a language other than the ones asked for, a long-lasting incident. **Run
   `python3 -m lu_alert` on your host** and compare the output with the official app.
-* **a real Domoticz.** The plugin has not been run in one. The stub follows the documentation, but Domoticz has details of its own: how the Alert devices
-  look in the web interface, how a long text is shown, the order of the device names.
+* **a real Domoticz, for long.** It has run in the author's Domoticz 2026.4 since 2026-11-04: it starts, reads the feed,
+  creates its devices and shows the alerts. Not known: weeks of running, other Domoticz and Python versions, how a
+  long text looks on other skins, and **why Domoticz restarted when the hardware was stopped**
+  ([issue #1](https://github.com/janreimen/Domoticz-LUAlert/issues/1)). The log of that report shows the plugin
+  stopping cleanly and systemd then asking for the restart; the plugin starts and stops no process, but that is
+  not yet an explanation. The test stub follows the documentation of Domoticz, not its source.
 * **the level `D`** ([see above](#the-level-d)): never seen in the feed.
 * **the licence of the data**, which is given on the dataset page, and **the licence of the integration this follows**
   (its repository has none; see [NOTICE](NOTICE)).
 * **Domoticz versions and Python versions other than** the ones the tests run on (Python 3.9 to 3.13 in CI; 3.7
   compatibility is checked statically).
 
-Reports from real installations, also "it works on my setup", are very welcome: [open an issue](https://github.com/janreimen/Domoticz-LU-Alert/issues).
+Reports from real installations, also "it works on my setup", are very welcome: [open an issue](https://github.com/janreimen/Domoticz-LUAlert/issues).
 A saved real message (`python3 -m lu_alert --json`, without your location) is the best bug report.
 
 ## Development
 
 ```sh
-git clone https://github.com/janreimen/Domoticz-LU-Alert.git
-cd Domoticz-LU-Alert
+git clone https://github.com/janreimen/Domoticz-LUAlert.git
+cd Domoticz-LUAlert
 make test            # python3 -m unittest discover -s tests
 make check           # tests + flake8 + shellcheck + Python 3.7 compatibility (vermin) + generated docs up to date
-make package         # dist/Domoticz-LU-Alert-<version>.tar.gz
+make package         # dist/Domoticz-LUAlert-<version>.tar.gz
 ```
 
 Rules, how to add a device and how to prepare a release: [CONTRIBUTING.md](CONTRIBUTING.md) and

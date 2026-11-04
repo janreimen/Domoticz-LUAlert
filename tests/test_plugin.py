@@ -16,7 +16,7 @@ from cap_samples import CITY, HOME, cap_xml
 from helpers import ROOT, start_feed
 from lu_alert import __version__
 from lu_alert.config import KNOWN_KEYS, Settings
-from lu_alert.constants import UNIT_ACTIVE, UNIT_CRITICAL, UNIT_LOCAL, UNIT_STATUS
+from lu_alert.constants import UNIT_ACTIVE, UNIT_ALERT_FIRST, UNIT_CRITICAL, UNIT_LOCAL, UNIT_STATUS
 
 RESERVED = {"Parameters", "Devices", "Images", "Settings"}          # injected into plugin.py by Domoticz
 PARAMETER_FIELDS = {"Mode1", "Mode2", "Mode3", "Mode4", "Mode5", "Mode6", "Address", "Username"}
@@ -105,6 +105,18 @@ class CallbackTests(PluginCase):
         plugin.onStop()
         self.assertFalse(plugin._plugin.controller)
         self.assertTrue(any("stopped" in t for t in dz.messages("log")))
+
+    def test_the_description_is_in_the_alert_devices_unless_the_env_says_no(self):
+        self.fake.add("a", fresh("a", description="Reason: a pesticide. Bulk sale in: Colruyt"))
+        for setting, expected in (("1", True), ("0", False)):
+            plugin = self.load()
+            with mock.patch.dict(os.environ, {"LU_DEVICE_DESCRIPTION": setting}):
+                plugin.onStart()
+            self.beat_until(plugin, lambda: self.value(UNIT_ALERT_FIRST)[1].startswith("[Severe]"))
+            self.assertEqual("Bulk sale in: Colruyt" in self.value(UNIT_ALERT_FIRST)[1], expected, setting)
+            self.assertEqual(self.errors(), [])
+            plugin.onStop()
+            dz.reset()
 
     def test_devices_are_named_after_the_hardware_like_domoticz_does(self):
         plugin = self.load(Name="LU-Alert")

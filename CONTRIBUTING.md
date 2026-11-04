@@ -9,8 +9,8 @@ description: it becomes a test. Remove your location and other private data firs
 ## Set up
 
 ```sh
-git clone https://github.com/janreimen/Domoticz-LU-Alert.git
-cd Domoticz-LU-Alert
+git clone https://github.com/janreimen/Domoticz-LUAlert.git
+cd Domoticz-LUAlert
 make test            # python3 -m unittest discover -s tests
 make check           # tests + flake8 (pyflakes checks) + shellcheck + Python 3.7 compatibility (vermin) + generated docs
 ```

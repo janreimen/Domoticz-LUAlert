@@ -2,7 +2,7 @@
 
 ## Commitment
 
-Domoticz-LU-Alert aims to be usable and understandable by as many people as practical. The project will consider accessibility when updating documentation, issue templates, examples, and any user-facing text. Reports and constructive suggestions about accessibility are welcome.
+Domoticz-LUAlert aims to be usable and understandable by as many people as practical. The project will consider accessibility when updating documentation, issue templates, examples, and any user-facing text. Reports and constructive suggestions about accessibility are welcome.
 
 ## Supported environments
 
@@ -31,7 +31,7 @@ The plugin is **not a warning system** and must not be the only way you are warn
 ## Reporting an accessibility barrier
 
 If you encounter a barrier using the plugin or its documentation, please open an issue:
-https://github.com/janreimen/Domoticz-LU-Alert/issues
+https://github.com/janreimen/Domoticz-LUAlert/issues
 
 Choose a bug report or feature request template as appropriate and include:
 

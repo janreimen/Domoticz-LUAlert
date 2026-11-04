@@ -1,4 +1,4 @@
-# Deploying Domoticz-LU-Alert
+# Deploying Domoticz-LUAlert
 
 The plugin is a plain directory (`plugin.py` + the `lu_alert/` package) that has to sit in Domoticz' `plugins/`
 directory. Nothing is compiled and no Python package is installed. This page covers the ways to get it there, how
@@ -16,7 +16,7 @@ Quick check from the Domoticz host. It reads the live feed with the same code as
 plugin would show (an empty list is normal when no alert is active):
 
 ```sh
-cd Domoticz-LU-Alert && python3 -m lu_alert
+cd Domoticz-LUAlert && python3 -m lu_alert
 ```
 
 Exit status 0 = the feed was read, 2 = it could not be read (the message says why), 1 = a wrong option. If Domoticz
@@ -44,7 +44,7 @@ What it does on the target:
    replaces the working installation
 3. picks `sudo` only if the plugin directory is not writable for the SSH user (needs **passwordless** sudo then;
    otherwise log in as the Domoticz user or root)
-4. backs up the installed copy to `~/domoticz-plugin-backups/Domoticz-LU-Alert-<version>-<time>.tar.gz`
+4. backs up the installed copy to `~/domoticz-plugin-backups/Domoticz-LUAlert-<version>-<time>.tar.gz`
    and keeps the newest 3. The backup is deliberately **outside** the plugins directory: a second copy of `plugin.py`
    in there would be loaded by Domoticz as a duplicate plugin
 5. replaces `plugin.py`, `lu_alert/` and the documentation files. Other files you put in that directory, **your
@@ -52,13 +52,15 @@ What it does on the target:
 6. gives the directory back to its previous owner (for example `domoticz:domoticz`)
 7. restarts the `domoticz` systemd service
 
-Nothing is changed when a step before the copy fails (for instance when the backup directory is not writable).
+Nothing is changed when a step before the copy fails (for instance when the backup directory is not writable). It
+also stops, changing nothing, when another directory below the plugins directory already holds this plugin (the
+same plugin key): Domoticz would load both. Update that copy with `--dir`, or remove it. A rollback is not affected.
 
 | Option | Default | Meaning |
 |---|---|---|
 | `--host [USER@]HOST` | this machine | deploy over SSH |
 | `--ssh-opts "OPTS"` | | extra `ssh` options, e.g. `"-p 2222 -i ~/.ssh/id_ed25519"` |
-| `--dir PATH` | `/srv/domoticz/plugins/Domoticz-LU-Alert` | target directory |
+| `--dir PATH` | `/srv/domoticz/plugins/Domoticz-LUAlert` | target directory |
 | `--dry-run`, `-n` | | report only; the target is not changed |
 | `--rollback` | | restore the newest backup |
 | `--service NAME` | `domoticz` | systemd service to restart |
@@ -77,8 +79,8 @@ The script opens two SSH connections (upload, then run). Use key authentication,
 
 ```sh
 cd /srv/domoticz/plugins
-sudo cp -r /path/to/Domoticz-LU-Alert .                   # plugin.py and lu_alert/ must stay together
-sudo chown -R domoticz:domoticz Domoticz-LU-Alert         # whatever user runs Domoticz
+sudo cp -r /path/to/Domoticz-LUAlert .                   # plugin.py and lu_alert/ must stay together
+sudo chown -R domoticz:domoticz Domoticz-LUAlert         # whatever user runs Domoticz
 sudo systemctl restart domoticz
 ```
 
@@ -86,9 +88,9 @@ Or with git, which makes updates a `git pull`:
 
 ```sh
 cd /srv/domoticz/plugins
-git clone https://github.com/janreimen/Domoticz-LU-Alert.git
+git clone https://github.com/janreimen/Domoticz-LUAlert.git
 # later:
-cd Domoticz-LU-Alert && git pull && sudo systemctl restart domoticz
+cd Domoticz-LUAlert && git pull && sudo systemctl restart domoticz
 ```
 
 The directory name does not matter to Domoticz; the plugin is identified by the `key` in the manifest (`LUAlert`).
