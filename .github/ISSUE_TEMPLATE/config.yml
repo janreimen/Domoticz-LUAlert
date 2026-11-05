@@ -6,6 +6,6 @@ contact_links:
   - name: LU-Alert (official site)
     url: https://lu-alert.lu/
     about: Questions about the alert system itself, its levels or a particular alert belong to the Luxembourg government.
-  - name: Domoticz-LU-Alert repository
-    url: https://github.com/janreimen/Domoticz-LU-Alert
+  - name: Domoticz-LUAlert repository
+    url: https://github.com/janreimen/Domoticz-LUAlert
     about: Read the project documentation and review existing releases before opening an issue.

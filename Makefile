@@ -4,7 +4,7 @@ PYTHON   ?= python3
 DIST     := dist
 ARCHIVE  := $(DIST)/$(PLUGIN)-$(VERSION).tar.gz
 
-# make deploy HOST=jan@rpi4office       deploy over SSH
+# make deploy HOST=user@my-domoticz-host       deploy over SSH
 # make deploy                           deploy on this machine
 HOST   ?=
 DEPLOY_ARGS ?=

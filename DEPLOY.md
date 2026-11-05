@@ -31,11 +31,11 @@ Run it from a checkout (or unpacked archive) of this repository.
 ```sh
 ./deploy.sh --dry-run                               # show what would happen on this machine
 ./deploy.sh                                         # install on this machine
-./deploy.sh --host jan@rpi4office                   # install on another machine over SSH
-./deploy.sh --host jan@rpi4office --rollback        # back to the previous version
+./deploy.sh --host user@my-domoticz-host              # install on another machine over SSH
+./deploy.sh --host user@my-domoticz-host --rollback  # back to the previous version
 ```
 
-Or through make: `make deploy HOST=jan@rpi4office`, `make deploy-dry`, `make rollback HOST=...`.
+Or through make: `make deploy HOST=user@my-domoticz-host`, `make deploy-dry`, `make rollback HOST=...`.
 
 What it does on the target:
 

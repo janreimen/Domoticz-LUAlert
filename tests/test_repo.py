@@ -299,6 +299,13 @@ class DocumentationTests(unittest.TestCase):
         for level in ("ALERT_LVL_1", "ALERT_LVL_4", "TEST"):
             self.assertIn(level, read("docs", "LU-ALERT-DATA.md").split("## Seen in the live feed")[1].split("## Differences")[0])
 
+    def test_no_host_or_account_of_the_author_is_in_the_repository(self):
+        # the documents and examples use generic names; the author's machines and user names stay out of the package
+        pattern = re.compile(r"rpi4|rpi[0-9]|jan@|@rpi|/home/(?!user)|/root/|tmp/claude", re.I)
+        for name in ("README.md", "DEPLOY.md", "CHANGELOG.md", "CONTRIBUTING.md", "checklist.md", "Makefile", "deploy.sh",
+                     ".env.sample", "docs/LU-ALERT-DATA.md", "docs/DEVICES.md", "plugin.py"):
+            self.assertIsNone(pattern.search(read(*name.split("/"))), name)
+
     def test_the_licence_question_is_in_the_notice_and_the_readme(self):
         self.assertIn("no licence", read("NOTICE"))
         self.assertIn("licence of the integration", read("README.md"))

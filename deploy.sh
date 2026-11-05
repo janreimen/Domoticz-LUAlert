@@ -3,9 +3,9 @@
 # on this machine or on another one over SSH.
 #
 #   ./deploy.sh                                   # install on this machine
-#   ./deploy.sh --host jan@rpi4office             # install over SSH
-#   ./deploy.sh --host jan@rpi4office --dry-run   # show what would happen
-#   ./deploy.sh --host jan@rpi4office --rollback
+#   ./deploy.sh --host user@my-domoticz-host      # install over SSH
+#   ./deploy.sh --host user@my-domoticz-host --dry-run   # show what would happen
+#   ./deploy.sh --host user@my-domoticz-host --rollback
 #
 # What it does on the target:
 #   1. checks python3 >= 3.7

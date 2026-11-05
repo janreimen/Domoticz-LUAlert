@@ -22,8 +22,8 @@ you can use in notifications, scenes and scripts. It is a port of the Home Assis
   only `plugin.py` touches Domoticz.
 
 > **Status:** version 0.1.2. Developed against a **simulated** data.public.lu (a real TLS server inside the test
-> suite) and a simulated Domoticz. Since **2026-11-04** it has run in the author's Domoticz 2026.4 (Raspberry Pi OS
-> Trixie, Python 3.13) against the **live feed**: it reads the feed, creates its devices and shows the alerts. That is
+> suite) and a simulated Domoticz. Since **2026-11-04** it has run in the author's Domoticz 2026.4 on a Raspberry Pi
+> against the **live feed**: it reads the feed, creates its devices and shows the alerts. That is
 > days of use, not months; the level `D` has not been seen in the feed, and
 > [issue #1](https://github.com/janreimen/Domoticz-LUAlert/issues/1) (Domoticz restarted after the hardware was
 > stopped) is not understood yet. Read [what is verified and what is not](#what-is-verified-and-what-is-not).
@@ -61,7 +61,7 @@ Or use the bundled [`deploy.sh`](DEPLOY.md), which installs locally or over SSH,
 makes a backup, restores ownership and restarts Domoticz:
 
 ```sh
-./deploy.sh --host jan@rpi4office
+./deploy.sh --host user@my-domoticz-host
 ```
 
 Then *Setup > Hardware*, type **LU-Alert Luxembourg**, fill in the [settings](#settings) (none is required), *Add*.

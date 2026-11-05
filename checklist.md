@@ -36,11 +36,10 @@ only recognise plain numeric tags, so no `-alpha`, `-rc` or other suffix, neithe
 - [ ] If the plugin directory is now different from before (new module, renamed file): restart Domoticz, not just a
       hardware reload, so Python re-imports everything
 
-## 3. Release (two-machine workflow)
+## 3. Release (two-branch workflow)
 
-- [ ] On the development machine (rpi4office): commit on `development`
-      (`git commit -am "Release X.Y.Z"`)
-- [ ] On the production machine (rpi4dmz): merge into `main` and push (`git merge development && git push`)
+- [ ] On the development copy: commit on `development` (`git commit -am "Release X.Y.Z"`)
+- [ ] On the production copy: merge into `main` and push (`git merge development && git push`)
 - [ ] Tag `vX.Y.Z` on `main` (digits only) and push the tag; create the GitHub release with the CHANGELOG entry
 - [ ] Check that the plugin manager lists the new version
 

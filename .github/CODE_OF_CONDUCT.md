@@ -2,7 +2,7 @@
 
 ## Our Pledge
 
-We are committed to making participation in the Domoticz-LU-Alert project a welcoming, respectful, and constructive experience for everyone.
+We are committed to making participation in the Domoticz-LUAlert project a welcoming, respectful, and constructive experience for everyone.
 
 We welcome contributions from people of all experience levels, whether you are reporting a problem, testing the plugin against the LU-Alert feed, improving documentation, or contributing code.
 
@@ -45,7 +45,7 @@ Reports will be handled as confidentially as reasonably possible.
 
 ## Attribution
 
-This Code of Conduct is inspired by the Contributor Covenant and adapted for the Domoticz-LU-Alert project.
+This Code of Conduct is inspired by the Contributor Covenant and adapted for the Domoticz-LUAlert project.
 
 For the original Contributor Covenant, see:
 https://www.contributor-covenant.org/
